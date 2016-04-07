@@ -1,0 +1,1 @@
+copy ..\obj-2\rf.exe

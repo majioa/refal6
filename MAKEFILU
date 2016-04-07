@@ -1,0 +1,48 @@
+#  For UNIX:
+
+CC = gcc
+OBJS = rfmain.o rfstor.o rfinter.o rfarm.o rbarm.o rbsys.o arithm.o rfserv.o \
+ rfelst.o rfinit.o rbeval.o rfgo.o rfoutp.o rfinp.o refgen.o refini.o \
+ class.o channel.o fileio.o rbtable.o rftable.o rbio.o rfalloc.o \
+ contain.o concha.o constr.o convect.o conmask.o constor.o rbcont.o rbclass.o \
+ nomouse.o novideo.o
+
+all: ri
+
+ri: $(OBJS)
+	$(CC) -o ri $(OBJS) -lm
+
+.c.o:
+	$(CC) $*.c -O -c -ggdb
+
+rfmain.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h
+rfstor.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h channel.h contain.h rfalloc.h
+rfelst.o:
+rfinit.o:
+rfoutp.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h rfalloc.h fileio.h channel.h
+rfinp.o:   refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h contain.h fileio.h channel.h
+rfinter.o: refcom.h config.h refelem.h rfstor.h class.h refgen.h refint.h
+rbeval.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h refint.h
+rfgo.o:    refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h rfalloc.h refint.h fileio.h
+rbio.o:    refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h fileio.h channel.h
+rfarm.o:   refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h rbarm.h arithm.h 
+rbarm.o:   refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h rbarm.h arithm.h 
+rbsys.o:   refcom.h config.h refelem.h rfstor.h class.h refgen.h
+arithm.o:  arithm.h
+refgen.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h
+refini.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h
+rfserv.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h refint.h rfalloc.h
+rfalloc.o: refcom.h config.h refelem.h rfstor.h class.h rfalloc.h
+fileio.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h fileio.h channel.h
+channel.o: refcom.h config.h refelem.h rfstor.h class.h channel.h
+class.o:   refcom.h config.h refelem.h rfstor.h class.h rfalloc.h
+concha.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h channel.h rfalloc.h contain.h
+constr.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h contain.h
+constor.o: refcom.h config.h refelem.h rfstor.h class.h channel.h contain.h
+convect.o: refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h contain.h
+conmask.o: refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h contain.h arithm.h rbarm.h
+contain.o: refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h contain.h
+rftable.o: refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h
+rbtable.o: refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h
+rbclass.o: refcom.h config.h refelem.h rfstor.h class.h refgen.h
+rbcont.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h contain.h
