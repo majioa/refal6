@@ -301,4 +301,9 @@ typedef stel * stelptr;
                        vb2 = sp->sb2;\
                        vnel = sp->snel;\
                        vpc = sp->spc;}
+
+#define INCSP (spe = (elemptr *)((stelptr)spe + 1))
+#define DECSP (spe = (elemptr *)((stelptr)spe - 1))
+#define STORSP(sp) (spe = (__typeof(spe))(sp))
+
 #endif

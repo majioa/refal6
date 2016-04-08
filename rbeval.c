@@ -95,9 +95,10 @@ LOGICAL rf_eval (headptr hat, LOGICAL exitonfail)
   steps=0;
   savsp = sp;
    /* Make rf_inter to yield FAIL properly */
-   sp->spc=NOPC;
-   sp->snel=_failinit;
-   sp++;
+  sp->spc=NOPC;
+  sp->snel=_failinit;
+  INCSP;
+
   savtel = tel;
 run: BRKINIT;
   res = (rf_error ? FALSE : rf_inter(hvf,&steps));
@@ -194,9 +195,9 @@ ask: printlv("EVAL: Act Vf Fre Run [n]Step [n]Trc Evl Chg Kil New Inf M W D H cL
                }
             else  printlv("Active term killed\n");
             if (aux) { /* Justify sp and tel */
-                sp--;
-                 tel-=(sp->snel);      /* unsave(sp) */
-                 sp=(sp->ssp);
+                DECSP;
+                tel-=(sp->snel);      /* unsave(sp) */
+                STORSP(sp->ssp);
                 }
             if (c=='C') goto ask; else goto run;
             }
@@ -215,7 +216,7 @@ ask: printlv("EVAL: Act Vf Fre Run [n]Step [n]Trc Evl Chg Kil New Inf M W D H cL
        case 'D': if (stdtrc==stderr) {
             char name[40];
             fprintf(stdtrc,"Enter the filename to reDirect tracing to> ");
-            gets(name);
+            fgets(name, sizeof(name), stdin);
             fprintf(stdtrc," Press D to reDirect tracing back to console\n");
             stdtrc=fopen(name,"a");
             if(stdtrc==NULL) stdtrc = stderr;
@@ -257,7 +258,7 @@ ask: printlv("EVAL: Act Vf Fre Run [n]Step [n]Trc Evl Chg Kil New Inf M W D H cL
             if(c=='Y') rf_error=ERREXIT;
             break;
        case 'I':
-            fprintf(stdtrc,"sp=%p,tel=%p,b=%d,tel[0-3]=(%d,%d,%d,%d)\n",
+            fprintf(stdtrc,"sp=%p,tel=%p,b=%p,tel[0-3]=(%p,%p,%p,%p)\n",
                     sp,tel,b,tel[0],tel[1],tel[2],tel[3]);
             fprintf(stdtrc,"step=%ld, snel=%d, ssp=%p\n",
                     step, (sp-1)->snel,(sp-1)->ssp);
@@ -267,7 +268,7 @@ ask: printlv("EVAL: Act Vf Fre Run [n]Step [n]Trc Evl Chg Kil New Inf M W D H cL
 end:
     b = savb;
     SETSIM(hvf,1,HEADBRAC);
-    sp = savsp;
+    STORSP(savsp);
     tel = savtel;
     /* Clear the stack of result markers */
     while(nextact!=NULL) {

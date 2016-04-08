@@ -191,7 +191,7 @@ void prfree(int k)
  {  hadr *afree;
       fprintf(stdtrc,"\n   free(adr,len): ");
     for (afree = &heapfree; k-- AND *afree != NULL; afree = &(HNEXT(*afree)))
-        fprintf(stdtrc,"(%x,%u) ",*afree, HSIZE(*afree));
+        fprintf(stdtrc,"(%p,%u) ",*afree, (unsigned int)*afree);
   }
 
 void setpurge(t_purfun f)
@@ -209,7 +209,7 @@ LOGICAL allpurfun(hlen s)
  /* { regs.h.ah=1; regs.x.cx=l; int86(0x10,&regs,&regs); } */
   SETCURS(CURSHIGH);
   if(strchr(flags,'s')) {
-    fprintf(stdtrc,"PURGE MEMORY WHILE ALLOCATING %u ELEMENTS\n",s);
+    fprintf(stdtrc,"PURGE MEMORY WHILE ALLOCATING %u ELEMENTS\n",(unsigned int)s);
     rf_prholes(stdtrc); /* print out list of holes */
     }
   ALL(i,m_purfun) if((res = res | (*(purfun[i]))())!=0) break;
@@ -374,7 +374,7 @@ S: for (afree = &heapfree; *afree != NULL; afree = &(HNEXT(*afree)) )
    heapleft-=s;
    heapused+=s;
    if(heapused>heapmaxused) heapmaxused = heapused;
-   if(prm) fprintf(stdtrc,"rf_halloc: %u pars in %x\n",s,a);
+   if(prm) fprintf(stdtrc,"rf_halloc: %u pars in %p\n",(unsigned int)s,a);
    return(a);
    };
 
@@ -383,7 +383,7 @@ static void rf_hfree(hadr s, hlen n)
   FSLEN(s) =  n;        /*  HSIZE(s) = n; */
   heapused-=n;
   heapfreed+=n;
-  if(prm) fprintf(stdtrc,"rf_hfree: %u paragraphs in %x\n",n,s);
+  if(prm) fprintf(stdtrc,"rf_hfree: %u paragraphs in %p\n",(unsigned int)n,s);
   }
 
 void* rmalloc(seglen size)

@@ -69,7 +69,7 @@ ifunc p_object(headptr h, int m, addr* aa)
   *aa = PTOFAR(h);
   switch(m) {
     case _DONE: if (TYPE(h)!=HEADSIMPL) break;
-            fprintf(stdtrc,"ERROR: REF-TO-SIMPL %d ",h);
+            fprintf(stdtrc,"ERROR: REF-TO-SIMPL %p ",h);
             outref(stdout,fputc,h,TRUE,sysid);
             rf_exit(30);
     case _NEW:  break;

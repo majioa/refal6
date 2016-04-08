@@ -43,3 +43,9 @@
 
 /* #define CHAIN_FUN         ###   CHAIN/VECTOR function mode */
 /* #define NUMB_CODE         ###   NUNB/WORD code */
+
+
+/* Require to proper handling exception structure declaration */
+#define __USE_MISC
+
+#define STOR_OWN

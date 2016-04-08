@@ -119,7 +119,7 @@ adr     fbas;    /* current function body adress (only for VECTOR) */
 
 tofail:
     while(TRUE) {
-        sp--;
+        DECSP;
 tofail1:
         popst(b1,b2,nel,pc);
         if (pc != NOPC) break;
@@ -129,11 +129,11 @@ tofail1:
             case _error: retf(ERRIMP);
             case _fail: /* just after the aux view field */
                 endf;
-                sp--;
+                DECSP;
                 oldsp=(sp->ssp);
                 tel-=(nel=sp->snel);
                 unsavecfh;  /* restore function */
-                sp--; /* pop line with _vfld */
+                DECSP; /* pop line with _vfld */
                 popst(b1,b2,nel,pc);
                 if(pc!=0 OR nel!=_vfld)
                     { printlv("Fail: Stack error"); rf_exit(30); }
@@ -141,12 +141,12 @@ tofail1:
                 FREEXN(6,b1,b1); /* Throw out aux view field */
                 fail;
             case _failinit: retf(ERRFAIL);
-            case _alt: sp--; break; /* skip alt line */
+            case _alt: DECSP; break; /* skip alt line */
             case _stake: fail;
             case _cut: {
                 int failforce=1;
                 for(;;) {
-                    sp--;
+                    DECSP;
                     popst(b1,b2,nel,pc);
                     if(pc==NOPC) switch(nel) {
                         case _vfld: FREEXN(7,b1,b1); break;
@@ -365,7 +365,7 @@ switch (ins) {
 oldexp:    for(;;) {
             while (j != oexa) {
                 b1 = NEXT(b1);
-                if (b1 == b2) { sp = savsp; fail; }
+                if (b1 == b2) { STORSP(savsp); fail; }
                 j = NEXT(j);
                 if (ISBRAC(b1)) {
                   if (ISBRAC(j)) {
@@ -375,11 +375,11 @@ oldexp:    for(;;) {
                     continue;
                   }    }
                 else if (EQSYM(b1,j)) continue;
-                sp = savsp;
+                STORSP(savsp);
                 fail;
                 }
             if (sp == savsp) break;
-            if (NEXT(b1) != b2) { sp = savsp; fail; }
+            if (NEXT(b1) != b2) { STORSP(savsp); fail; }
             pope(j,oexa); pope(b1,b2);
             }
         tbel(nel++) = b1;
@@ -393,7 +393,7 @@ oldexp:    for(;;) {
 oldexpr: for(;;) {
             while (j != oexa) {
                 b2 = PREV(b2);
-                if (b2 == b1) { sp = savsp;  fail; }
+                if (b2 == b1) { STORSP(savsp);  fail; }
                 j = PREV(j);
                 if (ISBRAC(b2)) {
                   if (ISBRAC(j)) {
@@ -403,11 +403,11 @@ oldexpr: for(;;) {
                     continue;
                   }    }
                 else if (EQSYM(b2,j)) continue;
-                sp = savsp;
+                STORSP(savsp);
                 fail;
                 }
             if (sp == savsp) break;
-            if (NEXT(b1) != b2) { sp = savsp; fail; }
+            if (NEXT(b1) != b2) { STORSP(savsp); fail; }
             pope(j,oexa); pope(b1,b2);
             }
         tbel(onel) = b2;
@@ -429,7 +429,7 @@ oldexpr: for(;;) {
         break;
     case PLEN:
         pushst(b1,b2,nel,pc);
-        sp++;
+        INCSP;
         tbel(nel++) = NEXT(b1);
         tbel(nel++) = b1;
         NEXTOP;
@@ -443,7 +443,7 @@ oldexpr: for(;;) {
         b1 = tbel(++nel);
         movb1;
         tbel(nel) = b1;
-        sp++;
+        INCSP;
         nel++;
         break;
     case LENS:
@@ -452,7 +452,7 @@ oldexpr: for(;;) {
         tbel(++nel) = PREV(b1);
         tbel(++nel) = b1;
         nel++;
-        sp++;
+        INCSP;
         NEXTOP;
         break;
     case LENP:
@@ -462,7 +462,7 @@ oldexpr: for(;;) {
         tbel(++nel) = b1;
         b1 = b2 = tbel(++nel) = REF(b1);
         nel++;
-        sp++;
+        INCSP;
         break;
     case LENOS:
         ARG1(n);
@@ -472,7 +472,7 @@ oldexpr: for(;;) {
         tbel(++nel) = PREV(b1);
         tbel(++nel) = b1;
         nel++;
-        sp++;
+        INCSP;
         break;
 
 
@@ -614,7 +614,7 @@ tplmn:
         AFTERX(PREV(tbel(1)),s,s);
     /* make line to throw out view field in case of IMP */
         pushst(s,NOELEM,_vfld,NOPC);
-        sp++;
+        INCSP;
     /* Activate s [ p = REF(s) ]*/
         SETACT(p, REF00(lastact));
         if(lastact==newact) {  /* Activate immediately */
@@ -634,7 +634,7 @@ tplmn:
         (sp -> ssp) = oldsp;
         (sp -> spc) = pc;
         tel += nel;
-        sp++;
+        INCSP;
         oldsp = sp;
         assert (tel < telmax, ERRELTO);
         assert (spe < spemax, ERRSTKO);
@@ -652,7 +652,7 @@ tplmn:
         FREEXN(4,p1,PREV(p2));
         /* insert RESULT */
         if (b != bstart) { AFTERX(p, NEXT(bstart), b); b = bstart; }
-        sp = oldsp;
+        STORSP(oldsp);
 
 
 
@@ -686,7 +686,7 @@ nextstep:    /* bstart==b, sp == oldsp */
 /*              case HEADINITACT: sp->snel=_failinit; break; */
               default:     sp->snel=_error;
               };
-            sp++;
+            INCSP;
             startf;
             expc;
             if (chkpc) break; /* start execution */
@@ -697,7 +697,7 @@ nextstep:    /* bstart==b, sp == oldsp */
             /* accept the result of EVALVF and continue */
             verify(ISSNUMB(b1), ERRFUN);
             tbel(3)=b1=NEXT(b1);           /* 11.8.93 */
-            sp--;
+            DECSP;
             oldsp = (sp -> ssp);      /* unsave(oldsp,nel,pc) */
             tel -= (nel = sp->snel);
             pc = (sp -> spc);
@@ -719,29 +719,29 @@ nextstep:    /* bstart==b, sp == oldsp */
     case STAKE:
         sp->spc = NOPC;
         sp->snel = _stake;
-        sp++;
+        INCSP;
         break;
     case CUT:
         sp->spc = NOPC;
         sp->snel = _cut;
-        sp++;
+        INCSP;
         break;
     case DO:
 todo:
         sp->spc = NOPC;
         sp->snel = _error;  /* pushst(X,X,imp,NOPC);  */
-        sp++;
+        INCSP;
         break;
     case UNDO:
         while (TRUE) {
-            sp--;
+            DECSP;
             if(sp->spc==NOPC) {
                 if (sp->snel==_error) break;
                 if (sp->snel==_vfld) {
-                    sp--;
+                    DECSP;
                     if(sp->spc==NOPC AND sp->snel==_error) {
                         sp->snel=_nofail;
-                        sp=sp+2;
+                        STORSP(sp+2);
                         break;
                     }    }
                 printlv("UNDO: Stack error"); rf_exit(30);
@@ -750,13 +750,13 @@ todo:
     case BRANCH:
         if(NOT TEST_BRANCH) goto impcode;
         pushst(b1,b2,nel,BRANCH2);
-        sp++;
+        INCSP;
         pc = BRANCH1;
         break;
     case BRANCHR:
         if(NOT TEST_BRANCH) goto impcode;
         pushst(b1,b2,nel,BRANCH1);
-        sp++;
+        INCSP;
         pc = BRANCH2;
         break;
 
@@ -779,16 +779,16 @@ todo:
     case ALT:
         if(NOT TEST_BRANCH) goto impcode;
         pushst(b1,b2,nel,BRANCH2);  /* A continuation */
-        sp++;
+        INCSP;
         sp->spc = NOPC;
         sp->snel = _alt;   /* pushst(X,X,alt,NOPC) */
-        sp++;
+        INCSP;
         pc = BRANCH1;
         break;
     case END:
         extpl;
         while (TRUE) {
-            sp--;
+            DECSP;
             popst(b1,b2,nel,pc);
             if(pc==NOPC) {
                 if (nel==_vfld) FREEXN(8,b1,b1); else
@@ -811,7 +811,7 @@ impcode:
     }    }
 
 end:
-    sp = oldsp;
+    STORSP(oldsp);
     b = bstart;
     switch (rf_error) {
       case ERREND:

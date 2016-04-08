@@ -8,7 +8,13 @@
 #include "refgen.h"
 extern LOGICAL rg_GO();
 
-main (int argc, char** argv)
+static void init_debugout(void) __attribute__((constructor));
+static void init_debugout(void)
+{
+    stdtrc = stderr;
+}
+
+bool main (int argc, char** argv)
 {
    if(NOT initstor(argc,argv)) rf_err(ERCSTOR);
    if(NOT rf_inist()) rf_err(ERCINIT);

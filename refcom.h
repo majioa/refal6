@@ -266,7 +266,7 @@ EXTCOM elemptr oldb,nextb;
 #ifdef EXIST_CONIO_H
 
 /* #include <stdlib.h> */
-#include <conio.h>
+#include "conio.h"
 #define  BRKTEST       kbhit()
 #define  GETCH         getch()
 #define  ECHO(c)       putc(c,stdtrc);

@@ -85,7 +85,7 @@ extern adr anull;
 #define HDGETFAR(h,a) a = MK_FP(PREV(h),NEXT(h));
 #define HDSETFAR(h,a) { PREV(h) = FP_SEG(a); NEXT(h) = FP_OFF(a); }
 #else
-#define HDGETFAR(h,a) (elemptr)a = NEXT(h);
+#define HDGETFAR(h,a) a = NEXT(h);
 #define HDSETFAR(h,a) NEXT(h) = (elemptr)a;
 #endif
 
@@ -94,7 +94,7 @@ extern adr anull;
 #define SEGHEAD(a) (MEM(a)->segm.hd.tit.head) /* pointer to headder */
 #define SEGSIZE(l) (HEADSIZE+l)
 #define HEADSIZE sizeof(headblk)
-#define AD(h) (adr)NEXT(h)    /* headptr  -> adr */
+#define AD(h) NEXT(h)    /* headptr  -> adr */
 #define   LOCK(h)  SEGHEAD(AD(h))=NOHEAD;
 #define UNLOCK(h)  SEGHEAD(AD(h))=h;
 #define LOCKED(a)  (SEGHEAD(a)==NOHEAD)

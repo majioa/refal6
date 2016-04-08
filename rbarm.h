@@ -5,6 +5,7 @@
 #ifndef __RBARM_H
 #define __RBARM_H
 
+#include <math.h>
 #include "arithm.h"
 
 #define cvalue2int(c,i) i=(int)(short)CVAL(c)

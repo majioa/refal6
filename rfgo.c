@@ -48,7 +48,7 @@ static LOGICAL initblt()
 void printlv(char* s)
 {    int i;
     ALL(i,level) fprintf(stdtrc,"^");
-    fprintf(stdtrc,s);
+    fprintf(stdtrc,"%s",s);
     };
 
 

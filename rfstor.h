@@ -37,12 +37,12 @@ EXT     headptr  hashwd[HASHWD];   /* Hash-table for words             */
 EXT     int      LBUF;           /* Length of output buffer          */
 EXT     char*    Buf;            /* Buffer for pretty output         */
 
-extern FILE *    stdtrc;           /* File for debug information       */
-
 #ifdef STOR_OWN
-       FILE * stdtrc = stderr;
+static FILE *stdtrc = NULL;        /* Stderr for debug information       */
 static char* WORDS[NWDS] = {"T","F","TABLE","SYSTABLE","SYSARG","SYSID"};
 static long  totstor,totword;
+#else
+extern FILE *    stdtrc;           /* File for debug information       */
 #endif
 
 

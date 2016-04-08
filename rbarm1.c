@@ -248,7 +248,7 @@ LOGICAL rf_rfunc(aftype fun, cvalue arg, cvalue* ares)
   return rf_mk_creal(rr, ares, IS_SIMPL(CTYPE(arg)) );
   };
 
-int matherr(struct _exception *a)
+int matherr(struct exception *a)
 {
    res = FAIL;
    return 1;
@@ -306,20 +306,20 @@ LOGICAL rb_fun (int fun)
    return (TRUE);
    }
 
-rb_abs () { return rb_fun(_Abs ); };
-rb_sign() { return rb_fun(_Sign); };
-rb_sqrt() { return rb_fun(_Sqrt); };
-rb_exp () { return rb_fun(_Exp ); };
-rb_log () { return rb_fun(_Log ); };
-rb_sin () { return rb_fun(_Sin ); };
-rb_asin() { return rb_fun(_Asin); };
-rb_sinh() { return rb_fun(_Sinh); };
-rb_cos () { return rb_fun(_Cos ); };
-rb_acos() { return rb_fun(_Acos); };
-rb_cosh() { return rb_fun(_Cosh); };
-rb_tan () { return rb_fun(_Tan ); };
-rb_atan() { return rb_fun(_Atan); };
-rb_tanh() { return rb_fun(_Tanh); };
+LOGICAL rb_abs () { return rb_fun(_Abs ); };
+LOGICAL rb_sign() { return rb_fun(_Sign); };
+LOGICAL rb_sqrt() { return rb_fun(_Sqrt); };
+LOGICAL rb_exp () { return rb_fun(_Exp ); };
+LOGICAL rb_log () { return rb_fun(_Log ); };
+LOGICAL rb_sin () { return rb_fun(_Sin ); };
+LOGICAL rb_asin() { return rb_fun(_Asin); };
+LOGICAL rb_sinh() { return rb_fun(_Sinh); };
+LOGICAL rb_cos () { return rb_fun(_Cos ); };
+LOGICAL rb_acos() { return rb_fun(_Acos); };
+LOGICAL rb_cosh() { return rb_fun(_Cosh); };
+LOGICAL rb_tan () { return rb_fun(_Tan ); };
+LOGICAL rb_atan() { return rb_fun(_Atan); };
+LOGICAL rb_tanh() { return rb_fun(_Tanh); };
 
 void initar() { if(NOT INIWORDS(NAF,AF,AFS)) rf_err(ERCINIT); }
 
@@ -493,7 +493,7 @@ LOGICAL rb_time()
 
 #ifdef EXIST_SYS_TIMEB_H
 
-#include <sys\timeb.h>
+#include <sys/timeb.h>
 static long time_ticks()
 {  struct timeb ltime;
    ftime(&ltime);

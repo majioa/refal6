@@ -3,6 +3,7 @@
      rfio.h - functions from rfoutp.c and rfinp.c
 *******************************************************************/
 
+#include <unistd.h>
 #include "refelem.h"
 #include "channel.h"
 

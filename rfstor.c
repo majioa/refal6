@@ -349,7 +349,7 @@ LOGICAL rf_movbx(elemptr * y)
       }
    h=REF00(*y);
    if(ISBRAC(*y) AND TYPE(h)!=HEADBRAC) {
-     fprintf(stdtrc,"Free AT or VF: %u : %d, step=%lu\n",h,STYPE(h),step);
+     fprintf(stdtrc,"Free AT or VF: %p : %d, step=%lu\n",h,STYPE(h),step);
      SETSIM(h,1,HEADBRAC);
      }
    if (--VAL(h) == 0) { savb=b; b=*y; headfree(h); b=savb;}
@@ -362,7 +362,7 @@ LOGICAL testmem (long * al)
   if (b==0) { *al = 0L; return(FALSE); }
   for( *al = 0L ; ; ) {
     if(b!=PREV(NEXT(b))) {
-       fprintf(stdtrc,"Testmem: invalid back link: %u <-> %u \n",b,NEXT(b));
+       fprintf(stdtrc,"Testmem: invalid back link: %p <-> %p \n",b,NEXT(b));
        break;
        }
       if (NEXT(b)==Afreestor) return(TRUE);
@@ -413,7 +413,7 @@ void printallwords(FILE* f)
    headptr h;
    ALL(i, HASHWD)
       if (hashwd[i]!=NOHEAD) {
-         fprintf(stdtrc,"\n:%d:%u: ",i,hashwd[i]);
+         fprintf(stdtrc,"\n:%d:%p: ",i,hashwd[i]);
          for (h = hashwd[i]; h!=NOHEAD; h=PREV(h)) {
                         if(TYPE(h)!=HEADWORD)
                 { fprintf(stdtrc,"[%u:%u]",VAL(h),TYPE(h)); break; }

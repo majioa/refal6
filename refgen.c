@@ -90,7 +90,7 @@ void AFTERXS( elemptr px, elemptr pl, elemptr pr)
     headptr h;
     h=REF(py);
     if(TYPE(py) !=TYPEBRAC OR STYPE(h)==HEADBRAC)
-       fprintf(stdtrc,"AFTERXS: %u\n",h);
+       fprintf(stdtrc,"AFTERXS: %p\n",h);
     SETSIM(h,1,HEADBRAC);
     if(py==pr) break;
     }

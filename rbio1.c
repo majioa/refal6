@@ -561,7 +561,7 @@ LOGICAL  rb_numb()
    return (TRUE);
 }
 
-sputc(uchar c, uchar * buf)
+uchar sputc(uchar c, uchar * buf)
 /* buf is a bounded buffer: buf[0]=length, buf[1]=size */
 { if (buf[0] < buf[1]) buf[(++buf[0])+1]=c;
   return(c);
