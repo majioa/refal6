@@ -71,7 +71,7 @@ LOGICAL rb_make()
    pope(EargL,EargR);
    if (EargL == NULL) return(FAIL);
    ALL(mode,MAXMODE) { if(EQDATC(EargL,pword_table[mode])) goto M; }
-				  return(FAIL); M:;
+                  return(FAIL); M:;
    typ = HD(mode,OBJ);
    if(EargL==EargR) { if(NOT rf_mk_empty(&h,typ)) return(FALSE); }
    else if(NEXT(EargL)==EargR AND ISREF(EargR) )
@@ -98,9 +98,9 @@ static LOGICAL rb_movcop(int MovCop)
    if (ISREF(EargR) AND rf_get_empty(h=REF00(EargR),HEADBOX)) VAL(h)++;
    else return(FAIL); /* Move shouldn't produce values */
    TYPE(h) = TYPE(g);
-	 START(g);
-	   if(NOT EVAL(h,MovCop,Tmove,(THIS,g))) return FALSE;
-	 END(h);
+     START(g);
+       if(NOT EVAL(h,MovCop,Tmove,(THIS,g))) return FALSE;
+     END(h);
    if(MovCop==_MOVE) TYPE(g) = HEADEMPTY; else END(g);
    c = CMKREF(h,TYPEREF);
    movbx(b,p);
@@ -138,7 +138,7 @@ LOGICAL rb_refcount()
 
 LOGICAL rb_send()
 {  elemptr bstart=b;
-   int res; 
+   int res;
    headptr h;
    expr eM;
    elemptr EargL, EargR;
@@ -154,11 +154,11 @@ LOGICAL rb_send()
    if(res != TRUE) { b=bstart; return(res); }
    else if(b==bstart) *AeresL = *AeresR = NOELEM;
    else {
-		*AeresL = NEXT(bstart);
-		*AeresR= b;
-		weld(bstart,NEXT(b));
-		b = bstart;
-		}
+        *AeresL = NEXT(bstart);
+        *AeresR= b;
+        weld(bstart,NEXT(b));
+        b = bstart;
+        }
    AFTER(b,EargL,EargR);
    return(TRUE);
    };

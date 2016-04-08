@@ -46,4 +46,3 @@ rbclass.obj: refcom.h config.h refelem.h rfstor.h class.h refgen.h
 rbcont.obj:  refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h contain.h
 rbmouse.obj: refcom.h config.h refelem.h rfstor.h class.h refgen.h eventdrv.h
 video.obj:   refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h contain.h channel.h video.h
-

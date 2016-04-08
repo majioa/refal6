@@ -56,7 +56,7 @@ int       ScreenMaxPage[SCREENMAXMODE] = {7, 7, 3, 3,-1,-1,-1, 0};
   sptr->attr = LIGHTGRAY;
   sptr->sptr = (slide *) sptr;
   sptr->page = page;
-  sptr->aptr = (attrchr*) 
+  sptr->aptr = (attrchr*)
           (ScreenMode == MONO? MK_FP (0xB000, 0): MK_FP (0xB800, 0));
   sptr->aptr+= page * sptr->w * sptr->h * sizeof (attrchr);
   slide_pos_set ((slide *) sptr, sptr->x, sptr->y);

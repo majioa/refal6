@@ -41,7 +41,7 @@ static LOGICAL igetn (addr thi, tail * at, cvalue * ac)
  seglen t,ln;
  ln = VLEN(h=PFROMFAR(thi));
  if((t=(seglen)(*at))>=ln)
-	 { *ac=CMKSIM(CHARVIR,TYPECHAR); return(FALSE); }
+     { *ac=CMKSIM(CHARVIR,TYPECHAR); return(FALSE); }
  (*at)++;
  *ac=VECFIRST(h)[t];
  return(TRUE);
@@ -53,7 +53,7 @@ static LOGICAL irepn   (addr thi, tail * at, cvalue c)
  seglen t,ln;
  ln = VLEN(h=PFROMFAR(thi));
  if((t=(seglen)(*at))>=ln)
-	 { if(REALLOC(AD(h),VSIZE(t+1))==NOADR) return(FALSE); }
+     { if(REALLOC(AD(h),VSIZE(t+1))==NOADR) return(FALSE); }
  else cvalfree(VECFIRST(h)[t]);
  (*at)++;
  VECFIRST(h)[t] = c;
@@ -88,14 +88,14 @@ static LOGICAL ishift  (addr thi, tail * at, int n)
  ln1 = (n>=-(int)(ln-t)? ln+n : t);
  n1=ln-ln1;
  if(n1>0)  /* length decreeses */ {
-	ALL(i,n1) cvalfree(VECFIRST(h)[t+i]);
-	for(i=t; i!=ln1; i++) VECFIRST(h)[i]=VECFIRST(h)[i+n1];
-	};
+    ALL(i,n1) cvalfree(VECFIRST(h)[t+i]);
+    for(i=t; i!=ln1; i++) VECFIRST(h)[i]=VECFIRST(h)[i+n1];
+    };
  if(ln1!=ln) if(REALLOC(AD(h),VSIZE(ln1))==NOADR) return(FALSE);
  if(n1<0)  /* length increeses */ {
-	for(i=ln1; i!=t; i--) VECFIRST(h)[i-1]=VECFIRST(h)[i+n1-1];
-	ALL(i,n) VECFIRST(h)[t+i]=CMKSIM(CHARVIR,TYPECHAR);
-	}
+    for(i=ln1; i!=t; i--) VECFIRST(h)[i-1]=VECFIRST(h)[i+n1-1];
+    ALL(i,n) VECFIRST(h)[t+i]=CMKSIM(CHARVIR,TYPECHAR);
+    }
  return(TRUE);
  }
 static LOGICAL icopy(addr thi, headptr from)
@@ -113,18 +113,18 @@ static LOGICAL icopy(addr thi, headptr from)
 ifunc p_vector(headptr h, int m, addr * aa)
 {  *aa = PTOFAR(h);
    switch(m) {
-	 case _SETPOS: return((ifunc)isetpos);
-	 case _GETN:   return((ifunc)igetn);
-	 case _REPN:   return((ifunc)irepn);
-	 case _GETLEN: return((ifunc)igetlen);
-	 case _SETLEN: return((ifunc)isetlen);
-	 case _SHIFT:  return((ifunc)ishift);
+     case _SETPOS: return((ifunc)isetpos);
+     case _GETN:   return((ifunc)igetn);
+     case _REPN:   return((ifunc)irepn);
+     case _GETLEN: return((ifunc)igetlen);
+     case _SETLEN: return((ifunc)isetlen);
+     case _SHIFT:  return((ifunc)ishift);
      case _COPY:   return((ifunc)icopy);
-	 case _DONE: {  seglen ln,i;
-		  LOCK(h);
-		  ln = VLEN(h);
-		  ALL(i,ln) cvalfree(VECFIRST(h)[i]);
-		  UNLOCK(h);
-		  }
-	 default: return(p_allocont(h,m,aa));
-}	 }
+     case _DONE: {  seglen ln,i;
+          LOCK(h);
+          ln = VLEN(h);
+          ALL(i,ln) cvalfree(VECFIRST(h)[i]);
+          UNLOCK(h);
+          }
+     default: return(p_allocont(h,m,aa));
+}     }

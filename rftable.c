@@ -7,7 +7,7 @@
 /*   Get the next link from the table    */
 /*   The result name and value are ghost */
 static LOGICAL tbox_next(headptr box, elemptr pos, elemptr * pos1,
-			   cvalue * aname, cvalue * avalue)
+               cvalue * aname, cvalue * avalue)
 {  elemptr n,v;
    if(pos==NULL) pos = TABLEBEGIN(box);
    n = NEXT(pos);
@@ -22,33 +22,33 @@ static LOGICAL tbox_next(headptr box, elemptr pos, elemptr * pos1,
 
 /*    Get the value from the table given a name   */
 static LOGICAL tbox_value(headptr box, int mode,
-			  cvalue name, cvalue * avalue)
+              cvalue name, cvalue * avalue)
 {  elemptr p,p0,p1,h;
    LOGICAL found;
    if(NOT ISTABLE(box)) return(FALSE);
  /* Search name */
    p0 = TABLEBEGIN(box);
    for (p = NEXT(p0) ; p!=box ; p = NEXT(p1) ) {
-	  p1 = NEXT(p);
-	  if(p1==box) return(FALSE);
-	  if(EQTERMC(p,name)) break;
-	  };
+      p1 = NEXT(p);
+      if(p1==box) return(FALSE);
+      if(EQTERMC(p,name)) break;
+      };
    found = (p!=box);
  /* Delete */
    if(found AND (mode=='N' OR mode=='D')) {
-	   AFTERX(b,p,p1);
-	   found = FALSE;
-	   };
+       AFTERX(b,p,p1);
+       found = FALSE;
+       };
  /* Insert */
    if ((NOT found) AND (mode=='N' OR mode=='U')) {
-	  /* Make empty box head */
-	if(NOT rf_mk_hboxn(name,&h)) return(FALSE);
-	  /* Make name symbol */
-	oldb=b;
-	COPSYMB(name);
-	  /* Make box symbol */
-	movb; SETREF(b,h,TYPEREF);
-	p1 = b;
+      /* Make empty box head */
+    if(NOT rf_mk_hboxn(name,&h)) return(FALSE);
+      /* Make name symbol */
+    oldb=b;
+    COPSYMB(name);
+      /* Make box symbol */
+    movb; SETREF(b,h,TYPEREF);
+    p1 = b;
 
 
 
@@ -57,11 +57,11 @@ static LOGICAL tbox_value(headptr box, int mode,
 
 
 
-	  /* Insert into the table */
-	AFTERX(PREV(box),NEXT(oldb),b);
-	b=oldb;
-	found = TRUE;
-	}
+      /* Insert into the table */
+    AFTERX(PREV(box),NEXT(oldb),b);
+    b=oldb;
+    found = TRUE;
+    }
  /* Make actual result */
    *avalue = ( found ? ADATA(p1) : NOCVALUE );
    return ( TRUE );
@@ -69,7 +69,7 @@ static LOGICAL tbox_value(headptr box, int mode,
 
 /* Get the name from the table given a value */
 static LOGICAL tbox_name(headptr box, int mode,
-						 cvalue value, cvalue * aname)
+                         cvalue value, cvalue * aname)
 {  elemptr p,p0,p1;
    LOGICAL found;
    char sname[20];
@@ -77,10 +77,10 @@ static LOGICAL tbox_name(headptr box, int mode,
  /* Search name */
    p0 = TABLEBEGIN(box);
    for (p = NEXT(p0) ; p!=box ; p = NEXT(p1) ) {
-	  p1 = NEXT(p);
-	  if(p1==box) return(FALSE);
-	  if(EQTERMC(p1,value)) break;
-	  };
+      p1 = NEXT(p);
+      if(p1==box) return(FALSE);
+      if(EQTERMC(p1,value)) break;
+      };
    found = (p!=box);
  /* Delete */
    if(found)
@@ -90,20 +90,20 @@ static LOGICAL tbox_name(headptr box, int mode,
        };
  /* Insert */
    if (NOT found)
-	 if(mode=='N' OR mode=='U') {
-	oldb=b;
-	  /* Make name */
-	sprintf(sname,"$X_%lx",*(long*)&value);
-	  /* Make name symbol */
-	if(NOT newword(sname)) return(FALSE);
-	p = b;
-	  /* Make value symbol */
-	COPSYMB(value);
-	  /* Insert into the table */
-	AFTERX(PREV(box),p,b);
-	b=oldb;
-	found = TRUE;
-	}
+     if(mode=='N' OR mode=='U') {
+    oldb=b;
+      /* Make name */
+    sprintf(sname,"$X_%lx",*(long*)&value);
+      /* Make name symbol */
+    if(NOT newword(sname)) return(FALSE);
+    p = b;
+      /* Make value symbol */
+    COPSYMB(value);
+      /* Insert into the table */
+    AFTERX(PREV(box),p,b);
+    b=oldb;
+    found = TRUE;
+    }
  /* Make actual result */
    *aname = ( found ? ADATA(p) : NOCVALUE );
    return ( TRUE );
@@ -131,29 +131,29 @@ static LOGICAL tbox_link(headptr table, cvalue name, cvalue value)
 LOGICAL rf_tab_val (headptr table, int mode, cvalue name, cvalue * avalue)
 {
    if(ISTABLE(table))
-	  return tbox_value(table,mode,name,avalue);
+      return tbox_value(table,mode,name,avalue);
    return(FALSE);
    };
 
 LOGICAL rf_tab_nam (headptr table, int mode, cvalue value, cvalue * aname)
 {
   if(ISTABLE(table))
-	 return tbox_name(table,mode,value,aname);
+     return tbox_name(table,mode,value,aname);
   return(FALSE);
   };
 
 LOGICAL rf_tab_link (headptr table, cvalue name, cvalue value)
 {
   if(ISTABLE(table))
-	 return tbox_link(table,name,value);
+     return tbox_link(table,name,value);
   return(FALSE);
   };
 
 LOGICAL rf_tab_next(headptr table, long pos, long * pos1,
-					cvalue * aname, cvalue * avalue)
+                    cvalue * aname, cvalue * avalue)
 {
   if(ISTABLE(table))
-	 return tbox_next(table,(elemptr)pos,(elemptr*)pos1,aname,avalue);
+     return tbox_next(table,(elemptr)pos,(elemptr*)pos1,aname,avalue);
   return(FALSE);
   };
 

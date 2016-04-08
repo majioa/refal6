@@ -1,6 +1,6 @@
 /***********************************************************************
    R E F A L - 6      Copyright (C) 1992 Arkady Klimov
-	   rfoutp.c      - output to channel
+       rfoutp.c      - output to channel
 ***********************************************************************/
 
 #include "refcom.h"
@@ -68,8 +68,8 @@ void initio()
 
 void rf_close(int n)
 {  if (n>=0 AND n < MAXFILES AND chan[n]!=NOHEAD) {
-	  headptrfree(chan[n]);
-	  chan[n] = NOHEAD;
+      headptrfree(chan[n]);
+      chan[n] = NOHEAD;
 }     }
 
 void endio()
@@ -97,8 +97,8 @@ FILE * rf_open(char * fn, char * mod)
            if (fulname[i-1]=='\\' OR fulname[i-1]=='/') break;
          fulname[i] = 0;
          strcat(fulname,fn);
-	 afile = fopen(fulname,mod);
-      }	 }
+     afile = fopen(fulname,mod);
+      }     }
    return(afile);
 }
 
@@ -107,7 +107,7 @@ static LOGICAL rfspec(WDPOS c, int l)
 {  int i;
    if (NOT (isalpha(WDCHAR(c)))) return(TRUE);
    for (i = l; i--; c = WDNEXT(c))
-	  if (NOT (ISWORDS(WDCHAR(c)))) return(TRUE);
+      if (NOT (ISWORDS(WDCHAR(c)))) return(TRUE);
    return (FALSE);
 }
 
@@ -126,7 +126,7 @@ static void rfptc(char c, FILE * f, Tputc ptc)
 }   }
 
 static LOGICAL outnumb(FILE * f, Tputc ptc, headptr h)
-{  
+{
    char buf[12];
    MPOS A,C,W; ulong* D;
    adr adC,adW,adD;
@@ -155,7 +155,7 @@ static LOGICAL outnumb(FILE * f, Tputc ptc, headptr h)
 
    ra_cvd(C,lC,W,D,mlD,&lD);
 
-   ALL(i,lD) { 
+   ALL(i,lD) {
       sprintf(buf, (i==0 ? "%lu\0" : "%09lu\0"), D[lD-i-1]);
       rfpts(buf,f,ptc);
       }
@@ -167,7 +167,7 @@ static LOGICAL outnumb(FILE * f, Tputc ptc, headptr h)
    }
 
 static void outreal(FILE * f, Tputc ptc, headptr h)
-{  
+{
    char buf[20];
    real r;
    head2real(h,r);
@@ -181,9 +181,9 @@ static void outwds(FILE* f, Tputc ptc, uchar* c, int l, LOGICAL isexp)
 {  int i;
    if (isexp AND rfspec(c,l)) {
       ptc('\"',f);
-	  ALL(i,l) rfptc(c[i],f,ptc);
-	  ptc('\"',f);
-	  }
+      ALL(i,l) rfptc(c[i],f,ptc);
+      ptc('\"',f);
+      }
    else ALL(i,l) ptc(c[i],f);
    }
 
@@ -196,21 +196,21 @@ void outwdh (FILE* f, Tputc ptc, headptr h, LOGICAL isexp)
    END(h);
    }
 extern void outref(FILE* f, Tputc ptc, headptr hx,  /* object headder */
-		 LOGICAL isexp, headptr table);
+         LOGICAL isexp, headptr table);
 
 void outsymb( FILE* f, Tputc ptc, cvalue c,
-		 LOGICAL isexp, headptr table)
+         LOGICAL isexp, headptr table)
 { int t;
   elemptr h;
   char buf[20];
   t = CTYPE(c);
   if (IS_CHAR(t))
-		if(isexp) {
-		  ptc('\'',f);
-		  rfptc(CVAL(c),f,ptc);
-		  ptc('\'',f);
-		  }
-		else ptc(CVAL(c),f);
+        if(isexp) {
+          ptc('\'',f);
+          rfptc(CVAL(c),f,ptc);
+          ptc('\'',f);
+          }
+        else ptc(CVAL(c),f);
   else if (IS_SNUMB(t)) {
        sprintf(buf,"%d\0",(int)(short)CVAL(c));
        rfpts(buf,f,ptc);
@@ -223,48 +223,48 @@ void outsymb( FILE* f, Tputc ptc, cvalue c,
        }
   else if (IS_SWORD(t)) outwds(f,ptc,SWDBODY(c),SWD_LEN(t),isexp);
   else if (IS_REF(t))
-	switch (TYPE(h=CREF00(c))) {
-	  case HD(MASK,CON)  : outnumb(f,ptc,h); break;
-	  case HD(REAL,CON)  : outreal(f,ptc,h); break;
-	  case HD(STRING,CON): outwdh(f,ptc,h,isexp); break;
-	  default:
-	     if (isexp) ptc('*',f);
-		 outref(f,ptc,h,isexp,table);
-		 break;
-	  }
+    switch (TYPE(h=CREF00(c))) {
+      case HD(MASK,CON)  : outnumb(f,ptc,h); break;
+      case HD(REAL,CON)  : outreal(f,ptc,h); break;
+      case HD(STRING,CON): outwdh(f,ptc,h,isexp); break;
+      default:
+         if (isexp) ptc('*',f);
+         outref(f,ptc,h,isexp,table);
+         break;
+      }
   else if(t==TYPEVIR) ;
   else if(t==TYPESIMPL) { ptc('~',f); ptc('0'+CVAL(c),f); }
 
 
 
   else if(t==TYPEBRAC) { h=CREF00(c);
-	  ptc('(',f);
-	  ptc('\"',f);
-	  if(NEXT(h)!=h) rf_outm (f, ptc, NEXT(h), PREV(h), FALSE,table);
-	  ptc('\"',f);
+      ptc('(',f);
+      ptc('\"',f);
+      if(NEXT(h)!=h) rf_outm (f, ptc, NEXT(h), PREV(h), FALSE,table);
+      ptc('\"',f);
       ptc(')',f);
       }
   else { fprintf(stdtrc,"\nCvalue(%d,%d) ",CVAL(c),CTYPE(c)); rf_err(ERCSYSO);}
 }
 
 void outref(FILE* f, Tputc ptc,
-				  headptr hx,  /* object headder */
-				  LOGICAL isexp, headptr table)
+                  headptr hx,  /* object headder */
+                  LOGICAL isexp, headptr table)
 {  char buf[12];
    cvalue name;
    if(table!=NOTABLE AND
-	  rf_tab_nam(table,'O',CMKREF(hx,TYPEREF),&name) AND
-	  name != NOCVALUE ) {
-		 outsymb(f,ptc,name,isexp,NOTABLE);
-		 cvalfree(name);
-		 }
+      rf_tab_nam(table,'O',CMKREF(hx,TYPEREF),&name) AND
+      name != NOCVALUE ) {
+         outsymb(f,ptc,name,isexp,NOTABLE);
+         cvalfree(name);
+         }
    else
-	  if (NOT isexp AND (TYPE(hx) == HEADSTR))
-		  /* put out contents of the master string */
-		  outwdh(f,ptc,hx,FALSE);
-	  else {  /* print pointer as number */
-		 sprintf(buf,"X$%lx\0",(long)hx);
-		 rfpts(buf,f,ptc);
+      if (NOT isexp AND (TYPE(hx) == HEADSTR))
+          /* put out contents of the master string */
+          outwdh(f,ptc,hx,FALSE);
+      else {  /* print pointer as number */
+         sprintf(buf,"X$%lx\0",(long)hx);
+         rfpts(buf,f,ptc);
 }        }
 
 /* Buffered output for pretty-print (see also rfstor.h) */
@@ -287,7 +287,7 @@ static int bputc(int c, uchar* dummy)
 { int i;
   if (Pos==LBUF) {
     if (LastEnd==0) { /* Output all and make pos>Mbuf */
-	   ALL(i,Pos) Eptc(Buf[i],Ef);
+       ALL(i,Pos) Eptc(Buf[i],Ef);
        Pos = LBUF+1;
        }
     else bBreakLine(LastEnd,Pos,LastEndDepth);
@@ -300,14 +300,14 @@ static int bputc(int c, uchar* dummy)
 static void bStartTerm(int Depth)
 {
   if(Depth>0) {
-	if(Pos>LBUF) { if(Depth<LBUF) bBreakLine(0,0,Depth); }
+    if(Pos>LBUF) { if(Depth<LBUF) bBreakLine(0,0,Depth); }
     else { if (Depth<StartDepth) bBreakLine(Pos,Pos,Depth); }
 }   }
 
 static void bEndTerm(int Depth)
 {
   if(LastEnd==0 OR Depth<=LastEndDepth OR
-	  LastEnd<Pos-LastEnd AND LastEnd<LBUF-Pos)
+      LastEnd<Pos-LastEnd AND LastEnd<LBUF-Pos)
      if(Depth>0) { LastEnd=Pos; LastEndDepth=Depth; }
   }
 
@@ -323,28 +323,28 @@ static void bEnd()
   };
 
 void rf_outm (FILE * f, Tputc ptc,
-			  elemptr p1, elemptr p2,
-			  LOGICAL isexp, headptr table)
+              elemptr p1, elemptr p2,
+              LOGICAL isexp, headptr table)
 {  elemptr * savspe;
    headptr h;
    int Depth=0;
    spe = savspe = spe+SPEOFF;
    if (p1 == NOELEM) {
-	  spe = savspe-SPEOFF;
-	  return;
-	  }
+      spe = savspe-SPEOFF;
+      return;
+      }
    if(isexp) { bStart(f,ptc); ptc = (Tputc) bputc; }
    for (;;) {
     bStartTerm(Depth);
-	if (BADPTR(p1)) {rf_err(ERCSYSO);}
-	else if (ISBRAC(p1)) {
-	  h = REF(p1);
-	  if (PREV(h) == h) {
-		if (TYPE(h) == HEADBRAC) rfpts("()",f,ptc);
-		else if ((TYPE(h) & ACTSEL) == HEADVF) rfpts("[]",f,ptc);
-		else if ((TYPE(h) & ACTSEL) == HEADACT) rfpts("<>",f,ptc);
-		else rf_err(ERCSYSB);
-		}
+    if (BADPTR(p1)) {rf_err(ERCSYSO);}
+    else if (ISBRAC(p1)) {
+      h = REF(p1);
+      if (PREV(h) == h) {
+        if (TYPE(h) == HEADBRAC) rfpts("()",f,ptc);
+        else if ((TYPE(h) & ACTSEL) == HEADVF) rfpts("[]",f,ptc);
+        else if ((TYPE(h) & ACTSEL) == HEADACT) rfpts("<>",f,ptc);
+        else rf_err(ERCSYSB);
+        }
       else if(spe > spemax) {
           rfpts(" *** NOT ENOUGH STACK SPACE FOR OUTPUT *** ",f,ptc);
           }
@@ -357,55 +357,54 @@ void rf_outm (FILE * f, Tputc ptc,
 
 
 
-	  else {
-		pushe(p1,p2); Depth++;
-		p1 = REF(p1);
-		if (TYPE(p1) == HEADBRAC) ptc('(',f);
-		else if ((TYPE(p1) & ACTSEL) == HEADVF) ptc('[',f);
-		else if ((TYPE(p1) & ACTSEL) == HEADACT) ptc('<',f);
-		else rf_err(ERCSYSB);
-		p2 = PREV(p1);
-		if (NEXT(p2) != p1) rf_err(ERCLINK);
-		if (PREV(NEXT(p1)) != p1) rf_err(ERCLINK);
-		p1 = NEXT(p1);
-		continue;
-	}	}
-	else if (ISCHAR(p1))
-		if(isexp) {
-		  ptc('\'',f);
-		  for (;;) {
-			 rfptc(VAL(p1),f,ptc);
-			 if ((p1 == p2) OR (NOT (ISCHAR(NEXT(p1))))) break;
-			 p1 = NEXT(p1);
-			 }
-		  ptc('\'',f);
-		  }
-		else ptc(VAL(p1),f);
-	else outsymb(f,ptc,DATA(p1),isexp,table);
-	while (p1 == p2) {
-		if (isexp) bEndTerm(Depth);
-	 	if (savspe == spe) {
-			spe = savspe-SPEOFF;
-        		if (isexp) bEnd();
-        		return;
-        		}
-		pope(p1,p2); Depth--;
-		if (TYPE(REF(p1)) == HEADBRAC) ptc(')',f);
-		else if ((TYPE(REF(p1)) & ACTSEL) == HEADVF) ptc(']',f);
-		else if ((TYPE(REF(p1)) & ACTSEL) == HEADACT) ptc('>',f);
-		else rf_err(ERCSYSB);
-		}
-	if (isexp) { ptc(' ',f); bEndTerm(Depth); }
-	if (PREV(NEXT(p1)) != p1) rf_err(ERCLINK);
-	p1 = NEXT(p1);
+      else {
+        pushe(p1,p2); Depth++;
+        p1 = REF(p1);
+        if (TYPE(p1) == HEADBRAC) ptc('(',f);
+        else if ((TYPE(p1) & ACTSEL) == HEADVF) ptc('[',f);
+        else if ((TYPE(p1) & ACTSEL) == HEADACT) ptc('<',f);
+        else rf_err(ERCSYSB);
+        p2 = PREV(p1);
+        if (NEXT(p2) != p1) rf_err(ERCLINK);
+        if (PREV(NEXT(p1)) != p1) rf_err(ERCLINK);
+        p1 = NEXT(p1);
+        continue;
+    }    }
+    else if (ISCHAR(p1))
+        if(isexp) {
+          ptc('\'',f);
+          for (;;) {
+             rfptc(VAL(p1),f,ptc);
+             if ((p1 == p2) OR (NOT (ISCHAR(NEXT(p1))))) break;
+             p1 = NEXT(p1);
+             }
+          ptc('\'',f);
+          }
+        else ptc(VAL(p1),f);
+    else outsymb(f,ptc,DATA(p1),isexp,table);
+    while (p1 == p2) {
+        if (isexp) bEndTerm(Depth);
+         if (savspe == spe) {
+            spe = savspe-SPEOFF;
+                if (isexp) bEnd();
+                return;
+                }
+        pope(p1,p2); Depth--;
+        if (TYPE(REF(p1)) == HEADBRAC) ptc(')',f);
+        else if ((TYPE(REF(p1)) & ACTSEL) == HEADVF) ptc(']',f);
+        else if ((TYPE(REF(p1)) & ACTSEL) == HEADACT) ptc('>',f);
+        else rf_err(ERCSYSB);
+        }
+    if (isexp) { ptc(' ',f); bEndTerm(Depth); }
+    if (PREV(NEXT(p1)) != p1) rf_err(ERCLINK);
+    p1 = NEXT(p1);
 }     }
 
 void rf_outc (headptr cp,
-	 elemptr p1, elemptr p2,
-	 LOGICAL isexp, headptr table)
+     elemptr p1, elemptr p2,
+     LOGICAL isexp, headptr table)
 { Tputc ptc;
   FILE * f;
   ptc = (Tputc) IFUNC(cp,_PUTC); f = (FILE*) THIS;
   rf_outm (f, ptc, p1,p2,isexp,table);
   }
-

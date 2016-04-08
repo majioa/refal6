@@ -37,7 +37,7 @@ static LOGICAL igetn (addr thi, tail * at, cvalue * ac)
  seglen t,ln;
  ln = WDLEN(h=PFROMFAR(thi));
  if((t=(seglen)(*at))>=ln)
-	 { *ac=CMKSIM(CHARVIR,TYPECHAR); return(FALSE); }
+     { *ac=CMKSIM(CHARVIR,TYPECHAR); return(FALSE); }
  (*at)++;
  *ac=CMKSIM(WDFIRST(h)[t],TYPECHAR);
  return(TRUE);
@@ -50,7 +50,7 @@ static LOGICAL irepn   (addr thi, tail * at, cvalue c)
  ln = WDLEN(h=PFROMFAR(thi));
  cvalfree(c);
  if((t=(seglen)(*at))>=ln)
-	 if(REALLOC(AD(h),t+1)==NOADR) return(FALSE);
+     if(REALLOC(AD(h),t+1)==NOADR) return(FALSE);
  (*at)++;
  WDFIRST(h)[t] = (CTYPE(c)==TYPECHAR ? CVAL(c) : CHARVIR);
  return(TRUE);
@@ -87,15 +87,15 @@ static LOGICAL ishift  (addr thi, tail * at, int n)
  ln = WDLEN(h=PFROMFAR(thi));
  t=(seglen)(*at);
  ln1 = (n>=-(int)(ln-t)? ln+n : t);
- n1=ln-ln1; 
+ n1=ln-ln1;
  if(n1>0)  /* length decreeses */ {
-	for(i=t; i!=ln1; i++) WDFIRST(h)[i]=WDFIRST(h)[i+n1];
-	};
+    for(i=t; i!=ln1; i++) WDFIRST(h)[i]=WDFIRST(h)[i+n1];
+    };
  if(ln1!=ln) if(REALLOC(AD(h),ln1)==NOADR) return(FALSE);
  if(n1<0)  /* length increeses */ {
-	for(i=ln1; i!=t; i--) WDFIRST(h)[i-1]=WDFIRST(h)[i+n1-1];  
-	ALL(i,n) WDFIRST(h)[t+i]=CHARVIR;
-	}
+    for(i=ln1; i!=t; i--) WDFIRST(h)[i-1]=WDFIRST(h)[i+n1-1];
+    ALL(i,n) WDFIRST(h)[t+i]=CHARVIR;
+    }
  return(TRUE);
  }
 
@@ -103,12 +103,12 @@ ifunc p_string(headptr h, int m, addr * aa)
 {
    *aa = PTOFAR(h);
    switch(m) {
-	 case _SETPOS: return((ifunc)isetpos);
-	 case _GETN:   return((ifunc)igetn);
-	 case _REPN:   return((ifunc)irepn);
-	 case _GETLEN: return((ifunc)igetlen);
-	 case _SETLEN: return((ifunc)isetlen);
-	 case _SHIFT:  return((ifunc)ishift);
-	 case _DONE:   if(TYPE(h)==HEADWORD) {START(h);fromhashlist(h);END(h);}
-	 default: return(p_allocont(h,m,aa));
-}	 }
+     case _SETPOS: return((ifunc)isetpos);
+     case _GETN:   return((ifunc)igetn);
+     case _REPN:   return((ifunc)irepn);
+     case _GETLEN: return((ifunc)igetlen);
+     case _SETLEN: return((ifunc)isetlen);
+     case _SHIFT:  return((ifunc)ishift);
+     case _DONE:   if(TYPE(h)==HEADWORD) {START(h);fromhashlist(h);END(h);}
+     default: return(p_allocont(h,m,aa));
+}     }

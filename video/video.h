@@ -2,7 +2,7 @@
 /*   R E F A L - 6 :     Copyright (C) 1992 by Arkady Klimov            */
 /*        video.h    - graphics object headder                          */
 /************************************************************************/
-#if !defined(__VIDEO_H)						
+#if !defined(__VIDEO_H)
 #define __VIDEO_H
 
 #ifndef __REFCOM_H
@@ -129,7 +129,7 @@ extern  void far pascal  MoveRectangle  (  int  x1, int  y1,
 #define CloseGraph closegraph()
 
 #define SETCOLOR(aV) { setfillstyle(SOLID_FILL,(aV)->Color);\
-                       setcolor((aV)->Color); }           
+                       setcolor((aV)->Color); }
 
 #define SETTEXTCOLOR(aV) { SetColor((aV)->Color,(aV)->BackColor); }
 
@@ -137,4 +137,4 @@ extern  void far pascal  MoveRectangle  (  int  x1, int  y1,
 
 #define SETDRAWSTYLE(aV) setlinestyle(USERBIT_LINE,(aV)->DrawStyle,1);
 
-#endif									   	 
+#endif

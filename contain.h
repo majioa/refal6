@@ -14,14 +14,14 @@ typedef void* tail;
 #endif
 
 enum contain_ops {  _CONTAIN = 100,
-	_SETPOS , /* int isetpos (addr THIS, tail * at, int n)  n<=>0 */
-	_GETN ,   /* LOGICAL igetn   (addr THIS, tail * at, cvalue * ac)
-			 *ac is virtual!!!; if FALSE, *ac = ' '.          */
-	_REPN ,   /* LOGICAL irepn   (addr THIS, tail * at, cvalue c)
-						 c is actual!!!           */
-	_GETLEN , /* int     igetlen (addr THIS, tail t)                  */
-	_SETLEN , /* LOGICAL isetlen (addr THIS, tail * at, int l) l>=0   */
-	_SHIFT    /* LOGICAL ishift  (addr THIS, tail * at, int n) n<=>0  */
+    _SETPOS , /* int isetpos (addr THIS, tail * at, int n)  n<=>0 */
+    _GETN ,   /* LOGICAL igetn   (addr THIS, tail * at, cvalue * ac)
+             *ac is virtual!!!; if FALSE, *ac = ' '.          */
+    _REPN ,   /* LOGICAL irepn   (addr THIS, tail * at, cvalue c)
+                         c is actual!!!           */
+    _GETLEN , /* int     igetlen (addr THIS, tail t)                  */
+    _SETLEN , /* LOGICAL isetlen (addr THIS, tail * at, int l) l>=0   */
+    _SHIFT    /* LOGICAL ishift  (addr THIS, tail * at, int n) n<=>0  */
     };
 /*  SETPOS: n1 = n - (result position in range 0..lencont) */
 /*  GETN: FALSE, if position is out of range */

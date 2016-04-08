@@ -18,7 +18,7 @@ typedef int      iseglen; /* ### type for segment length (see rfalloc.h) */
 #define NWDS 6
 enum    word_number   { _T, _F, _TABLE, _SYSTABLE, _SYSARG, _SYSID };
 
-EXT	    cvalue   COMWORD [NWDS];
+EXT        cvalue   COMWORD [NWDS];
 EXT     elemptr  Afreestor;        /* Free storage head element        */
 #define Zfreestor PREV(Afreestor)
 EXT     elemptr  b;                /* Right end of result formed       */
@@ -33,9 +33,9 @@ EXT     int      rf_exitcd;        /* Exit code when end               */
 EXT     char *   exename;          /* Arg(0)                           */
 EXT     char *   ininame;          /* Arg(1) or "default.ini"          */
 EXT     headptr  hashwd[HASHWD];   /* Hash-table for words             */
-#define MBUF     79		   /* Maximum length of output buffer  */
-EXT     int      LBUF;		   /* Length of output buffer          */
-EXT     char*    Buf;	 	   /* Buffer for pretty output         */
+#define MBUF     79           /* Maximum length of output buffer  */
+EXT     int      LBUF;           /* Length of output buffer          */
+EXT     char*    Buf;            /* Buffer for pretty output         */
 
 extern FILE *    stdtrc;           /* File for debug information       */
 
@@ -68,7 +68,7 @@ void    cvalact(cvalue c);
 
 LOGICAL rf_mk_sword(char* nm, cvalue * ac);
 LOGICAL rf_mk_word (uchar* n, seglen ln, cvalue * ac, int simplify);
-				   /* result cvalue is actual */
+                   /* result cvalue is actual */
 
 LOGICAL newword(char*);
 int     initstor(int, char**);

@@ -48,4 +48,3 @@
   while (--len > 0);
 }
                          /* End of AttrChr.c */
-

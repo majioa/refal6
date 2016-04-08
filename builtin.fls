@@ -147,4 +147,3 @@
 ( VIDEO           (R "rb_video"))
 ( MOUSE           (C "rb_mouse"           ) )
 ( MOUSE           "inimouse")
-

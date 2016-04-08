@@ -34,7 +34,7 @@
 #define  first(E,T)  (T).L=(E).L;
 #define  last(E,T)  (T).R=(E).R;
 #define  butfirst(E)  if(one(E)) setempty(E) \
-                       else (E).L = NEXT((E).L); 
+                       else (E).L = NEXT((E).L);
 #define  butfirst2(E,F)  if(one(E)) setempty(F) \
                           else {(F).L = NEXT((E).L); (F).R = (E).R;}
 #define  butlast(E)  if(one(E)) setempty(E) \
@@ -42,8 +42,8 @@
 #define  butlast2(E,F)  if(one(E)) setempty(F) \
                           else {(F).R = PREV((E).R); (F).L = (E).L;}
 #define  cont(T,E)  {(E).R=REF(T.L);\
-		      if(((E).L=NEXT((E).R))==(E).R) setempty(E)\
-			          else (E).R=PREV((E).R);}
+              if(((E).L=NEXT((E).R))==(E).R) setempty(E)\
+                      else (E).R=PREV((E).R);}
 #define  eqSS(S,T)  EQSYM((S).L,T.L)
 #define  eqSC(S,C)  EQDATC((S).L,C)
 #define  eqCS(C,S)  EQDATC((S).L,C)
@@ -255,7 +255,7 @@ LOGICAL rf_get_empty(elemptr h, int typ);
 LOGICAL rf_eqobj(headptr h1, headptr h2); /* -> TRUE/FALSE */
 
 /*  Check that object h is of the class cls, otherwise
-	if object's EMPTY convert it to empty object of type typ 
+    if object's EMPTY convert it to empty object of type typ
 LOGICAL rf_defobj(elemptr h, int cls, int typ);
 */
 
@@ -279,13 +279,13 @@ LOGICAL rf_set(headptr h, cvalue c, int mincount);
 LOGICAL rf_eqlongc (elemptr p, cvalue c);
 LOGICAL rf_eqlong (elemptr p1, elemptr p2);
 LOGICAL rf_mkstr (uchar* s,int l);
-int ra_cmpl(headptr h1, headptr h2);  /* ·‡†¢≠•≠®• §¢„Â §´®≠≠ÎÂ Á®·•´ */
-int ra_sign(headptr h);               /* ß≠†™ §´®≠≠Æ£Æ Á®·´†: 0 ®´® -1 */
+int ra_cmpl(headptr h1, headptr h2);  /* —Å—Ä–∞–≤–Ω–µ–Ω–∏–µ –¥–≤—É—Ö –¥–ª–∏–Ω–Ω—ã—Ö —á–∏—Å–µ–ª */
+int ra_sign(headptr h);               /* –∑–Ω–∞–∫ –¥–ª–∏–Ω–Ω–æ–≥–æ —á–∏—Å–ª–∞: 0 –∏–ª–∏ -1 */
 LOGICAL rf_cmp (elemptr p1, elemptr p2, elemptr p3, elemptr p4);
 
 /* make box head given a name */
 LOGICAL rf_mk_hboxn (cvalue name, headptr * ah);
-		 /* name is ghost, result *ah is actual */
+         /* name is ghost, result *ah is actual */
 
 /* make box head without name */
 LOGICAL rf_mk_hbox(headptr * ah);
@@ -293,8 +293,8 @@ LOGICAL rf_mk_hbox(headptr * ah);
 /* make new object headder */
 LOGICAL  rf_mk_empty
    (headptr * ah,     /* result *ah is actual unless result is FALSE */
-	int typ           /* type typ must accept message _NEW */
-	);
+    int typ           /* type typ must accept message _NEW */
+    );
 #ifdef DEBUG
 LOGICAL rf_chck(elemptr p1, elemptr p2);
 LOGICAL rf_chckf(elemptr p1, elemptr p2);

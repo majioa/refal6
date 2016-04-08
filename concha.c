@@ -31,7 +31,7 @@ static LOGICAL igetn (addr thi, tail * at, cvalue * ac)
  elemptr h;
  h = PFROMFAR(thi);
  if(*at==PREV(h)) /* PREV for virtual expr */
-	{ *ac=CMKSIM(CHARVIR,TYPECHAR); return(FALSE); }
+    { *ac=CMKSIM(CHARVIR,TYPECHAR); return(FALSE); }
  *at=NEXT(*at);
  *ac=DATA(*at);
  return(TRUE);
@@ -42,9 +42,9 @@ static LOGICAL irepn   (addr thi, tail * at, cvalue c)
  elemptr p,h;
  h = PFROMFAR(thi);
  if((p=NEXT(*at))==h) {
-	movbx(b,p);
-	AFTERX(*at,p,p);
-	}
+    movbx(b,p);
+    AFTERX(*at,p,p);
+    }
  *at=p;
  elemfree(p);
  SETDATA(p,c);
@@ -64,11 +64,11 @@ static LOGICAL isetlen(addr thi, tail * at, int l)
   h = PFROMFAR(thi);
   for( p=*at ; l>0 AND (p1=NEXT(p))!=h ; l--, p = p1 );
   if(l>0) {
-	 p1=b;
-	 for ( ; l>0 ; l-- ) { movb; SETSIM(b,CHARVIR,TYPECHAR); }
-	 AFTERX(p,NEXT(p1),b);
-	 b=p1;
-	 }
+     p1=b;
+     for ( ; l>0 ; l-- ) { movb; SETSIM(b,CHARVIR,TYPECHAR); }
+     AFTERX(p,NEXT(p1),b);
+     b=p1;
+     }
   else if((p1=NEXT(p))!=h) AFTERX(b,p1,PREV(h));
   return(TRUE);
   };
@@ -77,15 +77,15 @@ static LOGICAL ishift  (addr thi, tail * at, int n)
 { elemptr p,p1,h;
   h = PFROMFAR(thi);
   if(n>0) {
-	 p1=b;
-	 for ( ; n>0 ; n-- ) { movb; SETSIM(b,CHARVIR,TYPECHAR); }
-	 AFTERX(*at,NEXT(p1),b);
-	 b=p1;
-	 }
+     p1=b;
+     for ( ; n>0 ; n-- ) { movb; SETSIM(b,CHARVIR,TYPECHAR); }
+     AFTERX(*at,NEXT(p1),b);
+     b=p1;
+     }
   else if (n<0) { tail t=*at;
-	 for( p=t ; n<0 AND (p1=NEXT(p))!=h ; n++, p = p1 );
-	 if(p!=t) AFTERX(b,NEXT(t),p);
-	 };
+     for( p=t ; n<0 AND (p1=NEXT(p))!=h ; n++, p = p1 );
+     if(p!=t) AFTERX(b,NEXT(t),p);
+     };
   return(TRUE);
   };
 
@@ -98,7 +98,7 @@ static LOGICAL imove(addr thi, headptr from)
    }
 
 static LOGICAL icopy(addr thi, headptr from)
-{  
+{
    elemptr savb = b;
    headptr h = PFROMFAR(thi);
    NEXT(h) = PREV(h) = h;
@@ -121,21 +121,21 @@ static LOGICAL icopy(addr thi, headptr from)
 ifunc p_chain(headptr h, int m, addr * aa)
 {  *aa = PTOFAR(h);
    switch(m) {
-	 case _START:
-	 case _END:    return(itrue);
-	 case _SETPOS: return((ifunc)isetpos);
-	 case _GETN:   return((ifunc)igetn);
-	 case _REPN:   return((ifunc)irepn);
-	 case _GETLEN: return((ifunc)igetlen);
-	 case _SETLEN: return((ifunc)isetlen);
-	 case _SHIFT:  return((ifunc)ishift);
-	 case _DONE:   if(NEXT(h)!=h) AFTERX(b,NEXT(h),PREV(h)); break;
-	 case _NEW:    NEXT(h)=PREV(h)=h; break;
-	 case _MOVE:   return((ifunc)imove);
-	 case _COPY:   return((ifunc)icopy);
-	 default: return(p_contain(h,m,aa));
-	 }
-	 return(itrue);
+     case _START:
+     case _END:    return(itrue);
+     case _SETPOS: return((ifunc)isetpos);
+     case _GETN:   return((ifunc)igetn);
+     case _REPN:   return((ifunc)irepn);
+     case _GETLEN: return((ifunc)igetlen);
+     case _SETLEN: return((ifunc)isetlen);
+     case _SHIFT:  return((ifunc)ishift);
+     case _DONE:   if(NEXT(h)!=h) AFTERX(b,NEXT(h),PREV(h)); break;
+     case _NEW:    NEXT(h)=PREV(h)=h; break;
+     case _MOVE:   return((ifunc)imove);
+     case _COPY:   return((ifunc)icopy);
+     default: return(p_contain(h,m,aa));
+     }
+     return(itrue);
 }
 
 static int igetc(addr thi)
@@ -163,15 +163,15 @@ static int iungetc(int c, addr thi)
 ifunc p_expr(headptr h, int m, addr * aa)
 {  *aa = PTOFAR(h);
    switch(m) {
-	 case _START:
-	 case _END:   break;
-	 case _SETPOS: return((ifunc)isetpos);
-	 case _GETN:   return((ifunc)igetn);
-	 case _GETLEN: return((ifunc)igetlen);
-	 case _GETC:   return((ifunc)igetc);
-	 case _UNGETC: return((ifunc)iungetc);
-	 case _NEW:    NEXT(h)=PREV(h)=NOELEM; break;
-	 default: return(p_object(h,m,aa));
-	 }
-	 return(itrue);
+     case _START:
+     case _END:   break;
+     case _SETPOS: return((ifunc)isetpos);
+     case _GETN:   return((ifunc)igetn);
+     case _GETLEN: return((ifunc)igetlen);
+     case _GETC:   return((ifunc)igetc);
+     case _UNGETC: return((ifunc)iungetc);
+     case _NEW:    NEXT(h)=PREV(h)=NOELEM; break;
+     default: return(p_object(h,m,aa));
+     }
+     return(itrue);
 }

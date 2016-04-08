@@ -1,5 +1,5 @@
 /******************************************************************
-   R E F A L - 6      Copyright (C) 1992 by Arkady Klimov 
+   R E F A L - 6      Copyright (C) 1992 by Arkady Klimov
    Definitions for building classes and objects
 *******************************************************************/
 /*   Object is a special kind of element == headder.

@@ -17,7 +17,7 @@ LOGICAL rf_tab_link (headptr table, cvalue name, cvalue value);
 
 /* The resulting name and value are virtual */
 LOGICAL rf_tab_next(headptr table, long pos, long * pos1,
-					cvalue * aname, cvalue * avalue);
+                    cvalue * aname, cvalue * avalue);
 
 /*     test if headder h is a table    */
 LOGICAL rf_istable(headptr h);

@@ -10,7 +10,7 @@
 /*E       <LAST  sN eX> == (eY) eN            ,     rb_last             */
 /*E       <LENGTH t1 ... tl> == l             ,     rb_length           */
 /*E  old  <LENW eX> == sL eX                  ,     rb_lenw             */
-/*E       <TYPE eA> == 'L' | 'l' | 'D' | 'O' |                     
+/*E       <TYPE eA> == 'L' | 'l' | 'D' | 'O' |
                        'F' | 'R' | 'B' | '*'  ,     rb_type             */
 /*E       <CHR s.Num> == s.Char               ,     rb_chr              */
 /*E       <ORD s.Char> == s.Num               ,     rb_ord              */
@@ -30,7 +30,7 @@ LOGICAL rb_arg()
    pope(EargL,EargR);
    if (EargL == NULL OR EargL != EargR) return(FALSE);
    if (NOT ISSNUMB(EargL) OR (n=VAL(EargL))<0) return(FALSE);
-   for(p = NEXT(sysarg),i=0; ; i++,p=NEXT(p)) 
+   for(p = NEXT(sysarg),i=0; ; i++,p=NEXT(p))
      if (NOT ISBRAC(p)) {
         *AeresL = *AeresR = NOELEM;
         break;
@@ -246,21 +246,21 @@ LOGICAL rb_type()
    pope(EargL,EargR);
    if (EargL == NOELEM) n = '*';
    else {
-      t = TYPE(EargL); 
+      t = TYPE(EargL);
       if (IS_SIMPL(t)) {
-		 if (IS_SWORD(t)) n = 'F';
-		 else if (IS_SNUMB(t)) n = 'N';
-		 else if (IS_CHAR(t)) {
-			if (isalpha(c=VAL(EargL))) n = (isupper(c) ? 'L' : 'l');
-			else if (isdigit(c)) n = 'D';
-			else n = 'O';
-		 }  }
-	  else switch (TYPE(REF00(EargL))) {
-		 case HEADWORD: n = 'F'; break;
-		 case HEADNUMB: n = 'N'; break;
-		 case HEADBRAC: n = 'B'; break;
-			   default: n = 'R';
-	  }	 }
+         if (IS_SWORD(t)) n = 'F';
+         else if (IS_SNUMB(t)) n = 'N';
+         else if (IS_CHAR(t)) {
+            if (isalpha(c=VAL(EargL))) n = (isupper(c) ? 'L' : 'l');
+            else if (isdigit(c)) n = 'D';
+            else n = 'O';
+         }  }
+      else switch (TYPE(REF00(EargL))) {
+         case HEADWORD: n = 'F'; break;
+         case HEADNUMB: n = 'N'; break;
+         case HEADBRAC: n = 'B'; break;
+               default: n = 'R';
+      }     }
    movb;
    SETSIM(b,n,TYPECHAR);
    *AeresL = b;
@@ -314,7 +314,7 @@ LOGICAL rb_chr()
       if (ISBRAC(p1)) return(FALSE);
       if (p1 == EargR) break;
       p1 = NEXT(p1);
-      } 
+      }
    p1 = EargL; */
    for (;;) {
       if (GETNUMB(p1,n)) {

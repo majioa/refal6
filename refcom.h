@@ -15,10 +15,10 @@
 #ifdef AT286
 #include <dos.h>
 #else
-#define FP_OFF(fp)	((unsigned short) (unsigned) (fp))
-#define FP_SEG(fp)	((unsigned short)((unsigned long)(fp) >> 16))
-#define MK_FP(seg,ofs)	((void*) \
-	   (((unsigned long)(seg) << 16) | (unsigned short)(ofs)))
+#define FP_OFF(fp)    ((unsigned short) (unsigned) (fp))
+#define FP_SEG(fp)    ((unsigned short)((unsigned long)(fp) >> 16))
+#define MK_FP(seg,ofs)    ((void*) \
+       (((unsigned long)(seg) << 16) | (unsigned short)(ofs)))
 #define far
 #endif
 
@@ -47,9 +47,9 @@
 #define  MAXFN       60    /* MAX length of file name                   */
 
 #ifdef SPLIT
-#define  STORBLK	 32766 /* Size of storage block in elements        */
+#define  STORBLK     32766 /* Size of storage block in elements        */
 #else
-#define  STORBLK	 1024  /* Size of storage block in elements         */
+#define  STORBLK     1024  /* Size of storage block in elements         */
 #endif
 
 #include "rfstor.h"
@@ -84,9 +84,9 @@ typedef uchar *   WDPOS;
 /*                  Number (Mask) structure                             */
 /************************************************************************/
 #define ushort myushort
-typedef unsigned short int ushort;    /* â¨¯ ¬ ªà®æ¨äàë */
+typedef unsigned short int ushort;    /* Ñ‚Ð¸Ð¿ Ð¼Ð°ÐºÑ€Ð¾Ñ†Ð¸Ñ„Ñ€Ñ‹ */
 #define ulong  myulong
-typedef unsigned long  int ulong;     /* â¨¯ ¤¢®©­®© ¬ ªà®æ¨äàë */
+typedef unsigned long  int ulong;     /* Ñ‚Ð¸Ð¿ Ð´Ð²Ð¾Ð¹Ð½Ð¾Ð¹ Ð¼Ð°ÐºÑ€Ð¾Ñ†Ð¸Ñ„Ñ€Ñ‹ */
 typedef ushort*  MPOS;
 #define MLEN(h)   ((SEGLEN(AD(h)))/sizeof(ushort))
 #define MSIZE(l)  ((l)*sizeof(ushort))
@@ -134,50 +134,50 @@ EXTCOM   elemptr*  spemax;           /* Upper bound for stack           */
 /*                        Error codes                                   */
 /************************************************************************/
 typedef enum {
-		 ERRNO,             /* No error                                  */
-		 ERRIMP,            /* Recognition impossible                    */
-		 ERRSTOR,           /* No storage                                */
-		 ERRFUN,            /* Invalid function identificator            */
-		 ERRBRK,            /* Cntrl-Break pressed                       */
-		 ERRSTEP,           /* Break on step                             */
-		 ERREND,            /* Normal end (No active terms)              */
-		 ERRFAIL,           /* Normal fail                               */
-		 ERREXIT,           /* End of computation (by <EXIT...>)         */
-		 ERRSYNT,           /* Syntax error in input                     */
-		 ERRSYSB,           /* Invalid bracket in output                 */
-		 ERRSYSO,           /* Invalid element in output                 */
-		 ERRINIT,           /* Error in initialisation                   */
-		 ERRDATA,           /* Invalid data structures                   */
-		 ERRLINK,           /* Invalid link                              */
-		 ERRELTO,           /* Element table overflow                    */
-		 ERRSTKO,           /* Transition stack overflow                 */
-		 ERRWORD,           /* No storage for words                      */
-		 ERRAFUN            /* Illegal access function                   */
+         ERRNO,             /* No error                                  */
+         ERRIMP,            /* Recognition impossible                    */
+         ERRSTOR,           /* No storage                                */
+         ERRFUN,            /* Invalid function identificator            */
+         ERRBRK,            /* Cntrl-Break pressed                       */
+         ERRSTEP,           /* Break on step                             */
+         ERREND,            /* Normal end (No active terms)              */
+         ERRFAIL,           /* Normal fail                               */
+         ERREXIT,           /* End of computation (by <EXIT...>)         */
+         ERRSYNT,           /* Syntax error in input                     */
+         ERRSYSB,           /* Invalid bracket in output                 */
+         ERRSYSO,           /* Invalid element in output                 */
+         ERRINIT,           /* Error in initialisation                   */
+         ERRDATA,           /* Invalid data structures                   */
+         ERRLINK,           /* Invalid link                              */
+         ERRELTO,           /* Element table overflow                    */
+         ERRSTKO,           /* Transition stack overflow                 */
+         ERRWORD,           /* No storage for words                      */
+         ERRAFUN            /* Illegal access function                   */
   } ercodes;
 
 /************************************************************************/
 /*                        Error exit codes                              */
 /************************************************************************/
 typedef enum {
-		 ERCNO,            /* No error                                  */
-		 ERCIMP,           /* Recognition impossible                    */
-		 ERCSTOR,          /* No storage                                */
-		 ERCFUN,           /* Invalid function identificator            */
-		 ERCBRK,           /* Break!!!                                  */
-		 ERCSTEP,          /* Break on step                             */
-		 ERCEND,           /* Normal end (No active terms)              */
-		 ERCFAIL,          /* Normal fail                               */
-		 ERCEXIT,          /* End of computation (by <EXIT...>)         */
-		 ERCSYNT,          /* Syntax error in input                     */
-		 ERCSYSB,          /* Invalid bracket in output                 */
-		 ERCSYSO,          /* Invalid element in output                 */
-		 ERCINIT,          /* Error in initialisation                   */
-		 ERCDATA,          /* Invalid data structures                   */
-		 ERCLINK,          /* Invalid link                              */
-		 ERCELTO,          /* Element table overflow                    */
-		 ERCSTKO,          /* Call stack overflow                       */
-		 ERCWORD,          /* No storage for words                      */
-		 ERCAFUN           /* Illegal access function                   */
+         ERCNO,            /* No error                                  */
+         ERCIMP,           /* Recognition impossible                    */
+         ERCSTOR,          /* No storage                                */
+         ERCFUN,           /* Invalid function identificator            */
+         ERCBRK,           /* Break!!!                                  */
+         ERCSTEP,          /* Break on step                             */
+         ERCEND,           /* Normal end (No active terms)              */
+         ERCFAIL,          /* Normal fail                               */
+         ERCEXIT,          /* End of computation (by <EXIT...>)         */
+         ERCSYNT,          /* Syntax error in input                     */
+         ERCSYSB,          /* Invalid bracket in output                 */
+         ERCSYSO,          /* Invalid element in output                 */
+         ERCINIT,          /* Error in initialisation                   */
+         ERCDATA,          /* Invalid data structures                   */
+         ERCLINK,          /* Invalid link                              */
+         ERCELTO,          /* Element table overflow                    */
+         ERCSTKO,          /* Call stack overflow                       */
+         ERCWORD,          /* No storage for words                      */
+         ERCAFUN           /* Illegal access function                   */
    } erexcodes;
 
 
@@ -194,8 +194,8 @@ typedef enum {
 /*                        Macros                                        */
 /************************************************************************/
 
-#define	 movb    { b=NEXT(b);\
-				 if(NOT ISSIMPL(b) AND NOT rf_movb()) return(FALSE);}
+#define     movb    { b=NEXT(b);\
+                 if(NOT ISSIMPL(b) AND NOT rf_movb()) return(FALSE);}
 #define  movbx(x,y) { y=NEXT(x);\
                  if(NOT ISSIMPL(y) AND NOT rf_movbx(&y)) return(FALSE);}
 #ifdef MCALL
@@ -213,10 +213,10 @@ typedef enum {
                        TYPE(xxx) = HEADBRAC; VAL(xxx) = 1;}
 #define  blr         { movb; SETBRAC(b,blbr); VAL(blbr)++; }
 /*         { elemptr xxx,yyy;\
-					   movb; xxx = b; movb; yyy=NEXT(b);\
-					   weld(xxx,yyy); weld(b,b);\
-					   TYPE(b) = HEADBRAC; VAL(b) = 1;\
-					   SETBRAC(xxx,b); b = xxx;} */
+                       movb; xxx = b; movb; yyy=NEXT(b);\
+                       weld(xxx,yyy); weld(b,b);\
+                       TYPE(b) = HEADBRAC; VAL(b) = 1;\
+                       SETBRAC(xxx,b); b = xxx;} */
 #define  weld(a1,a2) { NEXT(a1) = a2; PREV(a2) = a1;}
 #define  after(X,L,R) {weld(R,NEXT(X)); weld(X,L);}
 #endif
@@ -298,4 +298,3 @@ EXTCOM elemptr oldb,nextb;
 #define ECALL(fun)     { if(NOT (fun)) return FALSE;     }
 
 #endif
-

@@ -48,8 +48,8 @@ rb_new()
    popae(AeresL,AeresR);
    pope(EargL,EargR);
    if (EargL == NULL) cw = NOCVALUE;
-	 else if(EargL!=EargR OR NOT ISSYMB(EargL)) return(FAIL);
-	 else cw = DATA(EargL);
+     else if(EargL!=EargR OR NOT ISSYMB(EargL)) return(FAIL);
+     else cw = DATA(EargL);
    ECALL( rf_mk_hboxn(cw, &h) );
    movbx(b,p);
    SETREF(p,h,TYPEREF);
@@ -64,10 +64,10 @@ rb_new()
     otherwise return FALSE  */
 LOGICAL rf_iscont(elemptr h)
 {   if(IFUNC(h,_CONTAIN)!=inull) return(TRUE);
-	if(TYPE(h)!=HEADEMPTY) return(FALSE);
-	TYPE(h) = HEADBOX;
-	NEW(h);
-	return(TRUE);
+    if(TYPE(h)!=HEADEMPTY) return(FALSE);
+    TYPE(h) = HEADBOX;
+    NEW(h);
+    return(TRUE);
 }
 
 /* Make a valid copy for modification */
@@ -77,37 +77,37 @@ LOGICAL rf_mk_copy (cvalue c, headptr* ah, int mincount, LOGICAL enablobj)
 {
   int t = CTYPE(c);
   if (IS_SIMPL(t)) {
-	if(IS_SWORD(t)) {
+    if(IS_SWORD(t)) {
        ECALL( rf_mk_hword(SWDBODY(c),SWD_LEN(t),ah) );
        }
-	else if (IS_SNUMB(t)) {
-	   /* long i = (int) CVAL(c); Was incorect for big-endian computers */
+    else if (IS_SNUMB(t)) {
+       /* long i = (int) CVAL(c); Was incorect for big-endian computers */
        ushort i[2];
        i[0] = CVAL(c);
        i[1] = ((short)(i[0])>=0? 0 : -1);
-	   ECALL( rf_mk_hnumb(/* (ushort*) */ i,2,ah) );
-	   }
+       ECALL( rf_mk_hnumb(/* (ushort*) */ i,2,ah) );
+       }
     else if (IS_REAL(t)) {
        float f;
        cvalue2float(c,f);
        ECALL( rf_mk_hreal((real)f,ah) );
        }
-	else return(FAIL);
-	}
+    else return(FAIL);
+    }
   else {
-	 headptr h=CREF00(c);
-	 t = TYPE(h);
-	 START(h);
-	 if(ISOBJ(h) AND enablobj) { VAL(h)++; *ah=h; return(TRUE); }
-	 if(VAL(h)==mincount) {
-		if (t==HEADWORD) fromhashlist(h);
-		VAL(h)++; *ah=h; return(TRUE);
-		}
-	 ECALL( rf_mk_empty(ah,t) );
-	 /* copy h to *ah */
-	   ECALL( EVAL(*ah,_COPY,Tmove,(THIS,h)) );
-	 END(h);
-	 }
+     headptr h=CREF00(c);
+     t = TYPE(h);
+     START(h);
+     if(ISOBJ(h) AND enablobj) { VAL(h)++; *ah=h; return(TRUE); }
+     if(VAL(h)==mincount) {
+        if (t==HEADWORD) fromhashlist(h);
+        VAL(h)++; *ah=h; return(TRUE);
+        }
+     ECALL( rf_mk_empty(ah,t) );
+     /* copy h to *ah */
+       ECALL( EVAL(*ah,_COPY,Tmove,(THIS,h)) );
+     END(h);
+     }
   return(TRUE);
 }
 
@@ -138,33 +138,33 @@ void rf_simp_cont(headptr h, cvalue * ac)
   t=TYPE(h);
   if(t==HEADNUMB) {
          ushort* an = MFIRST(h);
-		 l=MLEN(h);
-		 while (l>1 AND an[l-1]==an[l-2]) l--;
-		 if (l<2 OR l==2 AND ((short) (an[0]^an[1]))>=0) {
-			*ac = CMKSIM(( l? *(MFIRST(h)) : 0 ),TYPESNUMB);
-			END(h);
-			headptrfree(h);
-			}
+         l=MLEN(h);
+         while (l>1 AND an[l-1]==an[l-2]) l--;
+         if (l<2 OR l==2 AND ((short) (an[0]^an[1]))>=0) {
+            *ac = CMKSIM(( l? *(MFIRST(h)) : 0 ),TYPESNUMB);
+            END(h);
+            headptrfree(h);
+            }
          else {
-    	    *ac = CMKREF(h,TYPELVAL);
+            *ac = CMKREF(h,TYPELVAL);
             END(h);
             }
          }
   else if(t==HEADWORD) {
-		  if ((l=WDLEN(h)) < 4) {
-			  aw=WDFIRST(h);
-			  *ac = CMKSIM(0,TYPESWORD(l));
-			  ALL(i,l) SWDBODY(*ac)[i]=aw[i];
-			  TYPE(h) = HEADSTR;
+          if ((l=WDLEN(h)) < 4) {
+              aw=WDFIRST(h);
+              *ac = CMKSIM(0,TYPESWORD(l));
+              ALL(i,l) SWDBODY(*ac)[i]=aw[i];
+              TYPE(h) = HEADSTR;
               END(h);
-		      headptrfree(h);
-			  }
-		  else {
-			 END(h);
-			 tohashlist(&h);
-			 *ac = CMKREF(h,TYPEREF);
-			 }
-		  }
+              headptrfree(h);
+              }
+          else {
+             END(h);
+             tohashlist(&h);
+             *ac = CMKREF(h,TYPEREF);
+             }
+          }
   else {
       *ac = CMKREF(h,(t==HD(CHAIN,CON)? TYPEBRAC:
                      (t==HD(REAL, CON)? TYPELVAL:
@@ -253,39 +253,39 @@ LOGICAL rb_setvr(LOGICAL ires)
    c = DATA(EargL);          /* c is virtual */
    NORMCONT(c,&h,1); /* 1 is min. refcount. for c */
    if (MODE(TYPE(h)) == CHAIN) { /* for efficiency */
-	   if (NEXT(h) != h) { AFTERX(b,NEXT(h),PREV(h)); }
-	   if (EargL != EargR) { AFTER(h,NEXT(EargL),EargR); }
-	   AFTER(b,EargL,EargL);
-	   }
+       if (NEXT(h) != h) { AFTERX(b,NEXT(h),PREV(h)); }
+       if (EargL != EargR) { AFTER(h,NEXT(EargL),EargR); }
+       AFTER(b,EargL,EargL);
+       }
    else {
-	   int len;
-	   tail t;
-	   Tsetlen isetlen; Tsetpos isetpos; Trepn irepn;
-	   addr thi;
-		 isetlen = (Tsetlen) IFUNC(h,_SETLEN);
-		 isetpos = (Tsetpos) IFUNC(h,_SETPOS);
-		 irepn   = (Trepn) IFUNC(h,_REPN);
-		 thi = THIS;
-		 /* Evaluate the length of Arg */
-		 for (p=EargL, len=0; p!=EargR; p=NEXT(p), len++);
-		 isetpos(thi,&t,0);
-		 ECALL( isetlen(thi,&t,len) );
-		 for (p=EargL; p!=EargR; ) {
-			 p=NEXT(p);
-			 irepn(thi,&t,ADATA(p));
-			 };
-	   AFTER(b,EargL,EargR);
-	   };
+       int len;
+       tail t;
+       Tsetlen isetlen; Tsetpos isetpos; Trepn irepn;
+       addr thi;
+         isetlen = (Tsetlen) IFUNC(h,_SETLEN);
+         isetpos = (Tsetpos) IFUNC(h,_SETPOS);
+         irepn   = (Trepn) IFUNC(h,_REPN);
+         thi = THIS;
+         /* Evaluate the length of Arg */
+         for (p=EargL, len=0; p!=EargR; p=NEXT(p), len++);
+         isetpos(thi,&t,0);
+         ECALL( isetlen(thi,&t,len) );
+         for (p=EargL; p!=EargR; ) {
+             p=NEXT(p);
+             irepn(thi,&t,ADATA(p));
+             };
+       AFTER(b,EargL,EargR);
+       };
    rf_simp_cont(h, &c); /* h is actual and STARTED, result c is actual */
    if(ires) {
-	  movbx(b,p);
-	  weld(b,NEXT(p));
-	  SETDATA(p,c);
+      movbx(b,p);
+      weld(b,NEXT(p));
+      SETDATA(p,c);
       }
    else {
-	  p = NOELEM;
-	  cvalfree(c);
-	  }
+      p = NOELEM;
+      cvalfree(c);
+      }
    *AeresL = *AeresR = p;
    return(TRUE);
 }
@@ -309,47 +309,47 @@ LOGICAL c_getvr(cvalue c, LOGICAL iclr)
  ct = CTYPE(c);
  if( IS_SIMPL(ct)) {
    if (IS_SWORD(ct))
-	  for( i=0, l=SWD_LEN(ct); i<l; i++) {
-		 movb;
-		 SETSIM(b,SWDBODY(c)[i],TYPECHAR);
-		 }
+      for( i=0, l=SWD_LEN(ct); i<l; i++) {
+         movb;
+         SETSIM(b,SWDBODY(c)[i],TYPECHAR);
+         }
    else if(IS_SNUMB(ct))
-	  for (i = CVAL(c), l=rf_intlen(i) ; l-- > 0 ; i>>=1) {
-		 movb;
-		 SETSIM(b,'0'+(i&1),TYPECHAR);
-		 }
+      for (i = CVAL(c), l=rf_intlen(i) ; l-- > 0 ; i>>=1) {
+         movb;
+         SETSIM(b,'0'+(i&1),TYPECHAR);
+         }
    else return(FAIL);
    }
  else {
    h = CREF00(c); /* c IS-REF */
    if(NOT ISCONT(h)) return(FAIL);
    if(MODE(TYPE(h)) == CHAIN) { /* for efficiency */
-	 if (iclr OR (VAL(h)==1)) {
-	   p = NEXT(h); q = PREV(h);
-	   if (p!=h) { AFTERX(b,p,q); b = q; }
-	   }
-	 else
-	   for (p = NEXT(h); p != h ; p = NEXT(p) ) {
-		 movb;  MKINF(b,p);
-		 if (NOT ISSIMPL(b)) ++VAL(REF00(b));
-	 }	 }
+     if (iclr OR (VAL(h)==1)) {
+       p = NEXT(h); q = PREV(h);
+       if (p!=h) { AFTERX(b,p,q); b = q; }
+       }
+     else
+       for (p = NEXT(h); p != h ; p = NEXT(p) ) {
+         movb;  MKINF(b,p);
+         if (NOT ISSIMPL(b)) ++VAL(REF00(b));
+     }     }
    else /* (MODE!=CHAIN) */ {
-	   tail t;
-	   Tsetpos isetpos; Tgetn igetn;
-	   addr thi;
-	   START(h);
-		 isetpos  = (Tsetpos) IFUNC(h,_SETPOS);
-		 igetn    = (Tgetn)   IFUNC(h,_GETN);    thi = THIS;
-		 for (isetpos(thi,&t,0); igetn(thi,&t,&cc); ) {
-			movb;
-			cvalact(cc);
+       tail t;
+       Tsetpos isetpos; Tgetn igetn;
+       addr thi;
+       START(h);
+         isetpos  = (Tsetpos) IFUNC(h,_SETPOS);
+         igetn    = (Tgetn)   IFUNC(h,_GETN);    thi = THIS;
+         for (isetpos(thi,&t,0); igetn(thi,&t,&cc); ) {
+            movb;
+            cvalact(cc);
             SETDATA(b,cc);
-			}
-		 if(iclr AND ISOBJ(h)) {
-			 isetpos(thi,&t,0);
-			 EVAL(h,_SETLEN,Tsetlen,(THIS,&t,0));
-			 }
-	   END(h);
+            }
+         if(iclr AND ISOBJ(h)) {
+             isetpos(thi,&t,0);
+             EVAL(h,_SETLEN,Tsetlen,(THIS,&t,0));
+             }
+       END(h);
    }   }
  return(TRUE);
 }
@@ -392,17 +392,17 @@ LOGICAL rb_setn()
    if (NOT rf_getnumb(pn, &N)) return(FAIL); n = (iseglen) N;
    c = DATA(EargL);          /* c is virtual */
    NORMCONT(c,&h,1); /* 1 is min. refcount. for c */
-   {	   addr thi;
-	   tail t;
-	   Tsetpos isetpos;
-	   isetpos = (Tsetpos) IFUNC(h,_SETPOS); thi = THIS;
-	   if((n1=isetpos(thi,&t,n)) > 0) {
-		ECALL( EVAL(h,_SETLEN,Tsetlen,(THIS,&t,n1+1)) );
-		isetpos(thi,&t,n);
-		};
-	   if(n1>=0) ECALL( EVAL(h,_REPN,Trepn,(THIS,&t,ADATA(EargR))) );
-	   AFTER(b,EargL,EargR);
-	   };
+   {       addr thi;
+       tail t;
+       Tsetpos isetpos;
+       isetpos = (Tsetpos) IFUNC(h,_SETPOS); thi = THIS;
+       if((n1=isetpos(thi,&t,n)) > 0) {
+        ECALL( EVAL(h,_SETLEN,Tsetlen,(THIS,&t,n1+1)) );
+        isetpos(thi,&t,n);
+        };
+       if(n1>=0) ECALL( EVAL(h,_REPN,Trepn,(THIS,&t,ADATA(EargR))) );
+       AFTER(b,EargL,EargR);
+       };
    rf_simp_cont(h, &c); /* h is actual and STARTED, result c is actual */
    movbx(b,p);
    weld(b,NEXT(p));
@@ -434,26 +434,26 @@ LOGICAL rb_getn()
   c = DATA(EargL);
   ct = CTYPE(c);
   if( IS_SIMPL(ct)) {
-	 if (IS_SWORD(ct))
-		ch = ( (n>=0? (n1=n)<SWD_LEN(ct) : (n1=SWD_LEN(ct)+n+1)>=0)
+     if (IS_SWORD(ct))
+        ch = ( (n>=0? (n1=n)<SWD_LEN(ct) : (n1=SWD_LEN(ct)+n+1)>=0)
                  ? SWDBODY(c)[n1] : CHARVIR);
-	 else if(IS_SNUMB(ct)) {
-		int i=CVAL(c);
-		ch = ( (n>=0? (n1=n)<rf_intlen(i) : (n1=rf_intlen(i)+n+1)>=0)
+     else if(IS_SNUMB(ct)) {
+        int i=CVAL(c);
+        ch = ( (n>=0? (n1=n)<rf_intlen(i) : (n1=rf_intlen(i)+n+1)>=0)
                 ? '0'+((i>>n1)&1) : (i<0?'1':'0'));
-		}
-	 else return(FAIL);
-	 cc = CMKSIM(ch,TYPECHAR);
-	 }
+        }
+     else return(FAIL);
+     cc = CMKSIM(ch,TYPECHAR);
+     }
   else { tail t;
-	h = CREF00(c); /* c IS-REF */
-	if(NOT ISCONT(h)) return(FAIL);
-	START(h);
-	  if(EVAL(h,_SETPOS,Tsetpos,(THIS,&t,n))<0 OR
-	     NOT EVAL(h,_GETN,Tgetn,(THIS,&t,&cc)))
+    h = CREF00(c); /* c IS-REF */
+    if(NOT ISCONT(h)) return(FAIL);
+    START(h);
+      if(EVAL(h,_SETPOS,Tsetpos,(THIS,&t,n))<0 OR
+         NOT EVAL(h,_GETN,Tgetn,(THIS,&t,&cc)))
                 cc = CMKSIM(CHARVIR,TYPECHAR);
-	END(h);
-	}
+    END(h);
+    }
   movb; cvalact(cc); SETDATA(b,cc);    /* cc must be actual !!! */
   *AeresL = NEXT(savb);
   *AeresR = b;
@@ -496,33 +496,33 @@ LOGICAL rb_pos()
   c = DATA(EargL);
   ct = CTYPE(c);
   if( IS_SIMPL(ct)) {
-	if(ISCHAR(EargR)) {
-	  ch=VAL(EargR);
-	  if (IS_SWORD(ct)) {
-		l=SWD_LEN(ct);
-		ALL(k,l) if (SWDBODY(c)[k]==ch) ECALL( rf_mknumb(k) )
-		}
-	  else if(IS_SNUMB(ct)) {
+    if(ISCHAR(EargR)) {
+      ch=VAL(EargR);
+      if (IS_SWORD(ct)) {
+        l=SWD_LEN(ct);
+        ALL(k,l) if (SWDBODY(c)[k]==ch) ECALL( rf_mknumb(k) )
+        }
+      else if(IS_SNUMB(ct)) {
         i=CVAL(c);
-		l = rf_intlen(i);
-		ALL(k,l) {
+        l = rf_intlen(i);
+        ALL(k,l) {
                    if('0'+(i&1)==ch) ECALL( rf_mknumb(k) )
                    i>>=1;
-		}  }
-	  else return(FAIL);
-	} }
+        }  }
+      else return(FAIL);
+    } }
   else { tail t;
-	int res = TRUE;
-	h = CREF00(c); /* c IS-REF */
-	if(NOT ISCONT(h)) return(FAIL);
-	START(h);
-/* 	  igetn = (Tgetn) IFUNC(h,_GETN); */
-	  EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
-	  for(k=0; EVAL(h,_GETN,Tgetn,(THIS,&t,&dd)); k++)
-		 if(dd==d) if((res=rf_mknumb(k))!=TRUE) break;
-	END(h);
-	if(res!=TRUE)return(res);
-	}
+    int res = TRUE;
+    h = CREF00(c); /* c IS-REF */
+    if(NOT ISCONT(h)) return(FAIL);
+    START(h);
+/*       igetn = (Tgetn) IFUNC(h,_GETN); */
+      EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
+      for(k=0; EVAL(h,_GETN,Tgetn,(THIS,&t,&dd)); k++)
+         if(dd==d) if((res=rf_mknumb(k))!=TRUE) break;
+    END(h);
+    if(res!=TRUE)return(res);
+    }
   if(b==savb) *AeresL=*AeresR=NOELEM;
   else {
     *AeresL = NEXT(savb);
@@ -552,7 +552,7 @@ LOGICAL rb_gets()
  popae(AeresL,AeresR);
  pope(EargL,EargR);
  if (EargL == NULL OR EargL==EargR OR
-	(pn=NEXT(EargL)) == EargR OR (pl=NEXT(pn))!=EargR) return(FAIL);
+    (pn=NEXT(EargL)) == EargR OR (pl=NEXT(pn))!=EargR) return(FAIL);
  if (NOT rf_getnumb(pn,&N)) return(FAIL); else n=(iseglen)N;
  if (NOT rf_getnumb(pl,&L)) return(FAIL); else l=(seglen)L;
  savb = b;
@@ -560,7 +560,7 @@ LOGICAL rb_gets()
  ct = CTYPE(c);
  if( IS_SIMPL(ct)) {
    if (IS_SWORD(ct)) {
-	   if (n<0) n=SWD_LEN(ct)+n+1;
+       if (n<0) n=SWD_LEN(ct)+n+1;
        ALL(k,l) {
           m=n+k;
           ch=(m>=0 AND m<SWD_LEN(ct)? SWDBODY(c)[m] : CHARVIR);
@@ -579,33 +579,33 @@ LOGICAL rb_gets()
    else return(FAIL);
    }
  else {
-	tail t;
-	Tgetn igetn;
-	addr thi;
-	h = CREF00(c); /* c IS-REF */
-	if(NOT ISCONT(h)) return(FAIL);
-	START(h);
-	  n1=EVAL(h,_SETPOS,Tsetpos,(THIS,&t,n));
-	  igetn = (Tgetn) IFUNC(h,_GETN); thi = THIS;
-	  ALL(k,l) {
-		if(k<-n1) cc = CMKSIM(CHARVIR,TYPECHAR);
-		else igetn(thi,&t,&cc);
-		cvalact(cc);
-		movb;
-		SETDATA(b,cc);     /* cc is actual */
-		}
-	END(h);
-	}
+    tail t;
+    Tgetn igetn;
+    addr thi;
+    h = CREF00(c); /* c IS-REF */
+    if(NOT ISCONT(h)) return(FAIL);
+    START(h);
+      n1=EVAL(h,_SETPOS,Tsetpos,(THIS,&t,n));
+      igetn = (Tgetn) IFUNC(h,_GETN); thi = THIS;
+      ALL(k,l) {
+        if(k<-n1) cc = CMKSIM(CHARVIR,TYPECHAR);
+        else igetn(thi,&t,&cc);
+        cvalact(cc);
+        movb;
+        SETDATA(b,cc);     /* cc is actual */
+        }
+    END(h);
+    }
 
 
 
  if(b==savb) *AeresL=*AeresR=NOELEM;
  else {
-	*AeresL = NEXT(savb);
-	*AeresR = b;
-	weld(savb,NEXT(b));
-	b = savb;
-	}
+    *AeresL = NEXT(savb);
+    *AeresR = b;
+    weld(savb,NEXT(b));
+    b = savb;
+    }
  AFTER(b,EargL,EargR);
  return(TRUE);
  }
@@ -624,34 +624,34 @@ LOGICAL rb_sets()
    popae(AeresL,AeresR);
    pope(EargL,EargR);
    if (EargL == NULL OR EargL==EargR OR
-	  (pn=NEXT(EargL)) == EargR) return(FAIL);
+      (pn=NEXT(EargL)) == EargR) return(FAIL);
    pl=NEXT(pn);
    if (NOT rf_getnumb(pn, &N)) return(FAIL); n = (iseglen) N;
    if (NOT rf_getnumb(pl, &L)) return(FAIL); l =  (seglen) L;
    c = DATA(EargL);          /* c is virtual */
    NORMCONT(c,&h,1); /* 1 is min. refcount. for c */
    {   addr thi;
-	   tail t;
-	   Tsetpos isetpos;
-		 isetpos = (Tsetpos) IFUNC(h,_SETPOS); thi = THIS;
-		 isetpos(thi,&t,0);
-		 ln = EVAL(h,_GETLEN,Tgetlen,(thi,t));
-		 if(n<0) n += ln+1;
-		 if(ln<n+l)	ECALL( EVAL(h,_SETLEN,Tsetlen,(THIS,&t,n+l)) );
-		 isetpos(thi,&t,max(n,0));
-		 p = pl;
-		 ALL(k,l) {
-			if(pl==EargR) cc = CMKSIM(CHARVIR,TYPECHAR);
-			else { if(p==EargR) p=pl; p=NEXT(p); cc = ADATA(p); }
-			if(n<0) n++;
-			else ECALL( EVAL(h,_REPN,Trepn,(THIS,&t,cc)) );
-			}
-	   AFTER(b,EargL,EargR);
-	   };
+       tail t;
+       Tsetpos isetpos;
+         isetpos = (Tsetpos) IFUNC(h,_SETPOS); thi = THIS;
+         isetpos(thi,&t,0);
+         ln = EVAL(h,_GETLEN,Tgetlen,(thi,t));
+         if(n<0) n += ln+1;
+         if(ln<n+l)    ECALL( EVAL(h,_SETLEN,Tsetlen,(THIS,&t,n+l)) );
+         isetpos(thi,&t,max(n,0));
+         p = pl;
+         ALL(k,l) {
+            if(pl==EargR) cc = CMKSIM(CHARVIR,TYPECHAR);
+            else { if(p==EargR) p=pl; p=NEXT(p); cc = ADATA(p); }
+            if(n<0) n++;
+            else ECALL( EVAL(h,_REPN,Trepn,(THIS,&t,cc)) );
+            }
+       AFTER(b,EargL,EargR);
+       };
    rf_simp_cont(h, &c); /* h is actual and STARTED, result c is actual */
-	  movbx(b,p);
-	  weld(b,NEXT(p));
-	  SETDATA(p,c);
+      movbx(b,p);
+      weld(b,NEXT(p));
+      SETDATA(p,c);
    *AeresL = *AeresR = p;
    return(TRUE);
 }
@@ -673,21 +673,21 @@ LOGICAL rb_shift()
    popae(AeresL,AeresR);
    pope(EargL,EargR);
    if (EargL == NULL OR EargL==EargR OR
-	  (pn=NEXT(EargL)) == EargR OR (pl=NEXT(pn)) != EargR) return(FAIL);
+      (pn=NEXT(EargL)) == EargR OR (pl=NEXT(pn)) != EargR) return(FAIL);
    if (NOT rf_getnumb(pn, &N)) return(FAIL); n = (iseglen) N;
    if (NOT rf_getnumb(pl, &L)) return(FAIL); l = (iseglen) L;
    c = DATA(EargL);          /* c is virtual */
    NORMCONT(c,&h,1); /* 1 is min. refcount. for c */
    {   tail t;
-	   Tsetpos isetpos;
-		 isetpos =  (Tsetpos) IFUNC(h,_SETPOS);
-		 if((n1=isetpos(THIS,&t,n)) > 0) {
-			ECALL( EVAL(h,_SETLEN,Tsetlen,(THIS,&t,n1)) );
-			isetpos(THIS,&t,n);
-			};
-		 ECALL( EVAL(h,_SHIFT,Tshift,(THIS,&t,l)) );
-	   AFTER(b,EargL,EargR);
-	   };
+       Tsetpos isetpos;
+         isetpos =  (Tsetpos) IFUNC(h,_SETPOS);
+         if((n1=isetpos(THIS,&t,n)) > 0) {
+            ECALL( EVAL(h,_SETLEN,Tsetlen,(THIS,&t,n1)) );
+            isetpos(THIS,&t,n);
+            };
+         ECALL( EVAL(h,_SHIFT,Tshift,(THIS,&t,l)) );
+       AFTER(b,EargL,EargR);
+       };
    rf_simp_cont(h, &c); /* h is actual and STARTED, result c is actual */
    movbx(b,p);
    weld(b,NEXT(p));
@@ -730,19 +730,19 @@ LOGICAL rb_lencont()
  if (EargL == NULL OR EargL != EargR) return(FAIL);
  t=TYPE(EargL);
  if(IS_SIMPL(t)) {
-	 if(IS_SWORD(t)) len = SWD_LEN(t);
-	 else if(IS_SNUMB(t)) len = rf_intlen(VAL(EargL));
-	 else return(FALSE);
-	 }
+     if(IS_SWORD(t)) len = SWD_LEN(t);
+     else if(IS_SNUMB(t)) len = rf_intlen(VAL(EargL));
+     else return(FALSE);
+     }
  else {
-	 tail t;
-	 h = REF00(EargL);
-	 if(NOT ISCONT(h)) return(FAIL);
-	 START(h);
-	 EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
-	 len = EVAL(h,_GETLEN,Tgetlen,(THIS,t));
-	 END(h);
-	 }
+     tail t;
+     h = REF00(EargL);
+     if(NOT ISCONT(h)) return(FAIL);
+     START(h);
+     EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
+     len = EVAL(h,_GETLEN,Tgetlen,(THIS,t));
+     END(h);
+     }
  elemfree(EargL);
  ECALL( rf_mk_cnumb(len,&c,TRUE) );
  SETDATA(EargL,c);

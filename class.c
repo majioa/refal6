@@ -11,17 +11,17 @@
 
 int  iregtype(pfunc f,char * n, char ch)
 {  if(++pfunc_free >= MAXMODE) {
-	  fprintf(stdtrc,"No room to register type %s", n);
-	  rf_exit(20);
-	  };
+      fprintf(stdtrc,"No room to register type %s", n);
+      rf_exit(20);
+      };
    if(NOT vregtype(f,n,ch,pfunc_free)) return(0);
    return(pfunc_free);
    };
 
 LOGICAL vregtype(pfunc f,char * n, char ch, int i)
 { if(pname_table[i] != NULL)
-	 fprintf(stdtrc,"Register type %s at code %d instead of type %s",
-		   n,i, pname_table[i]);
+     fprintf(stdtrc,"Register type %s at code %d instead of type %s",
+           n,i, pname_table[i]);
   pname_table[i] = n;
   pchar_table[i] = ch;
   pfunc_table[i] = f;
@@ -68,16 +68,16 @@ ifunc p_object(headptr h, int m, addr* aa)
 {
   *aa = PTOFAR(h);
   switch(m) {
-	case _DONE: if (TYPE(h)!=HEADSIMPL) break;
-			fprintf(stdtrc,"ERROR: REF-TO-SIMPL %d ",h);
-			outref(stdout,fputc,h,TRUE,sysid);
-		    rf_exit(30);
-	case _NEW:  break;
-	case _COPY:
-	case _MOVE: return((ifunc) imove);
-	case _OBJECT: return(itrue);
-	default:    return(inull);
-	}
+    case _DONE: if (TYPE(h)!=HEADSIMPL) break;
+            fprintf(stdtrc,"ERROR: REF-TO-SIMPL %d ",h);
+            outref(stdout,fputc,h,TRUE,sysid);
+            rf_exit(30);
+    case _NEW:  break;
+    case _COPY:
+    case _MOVE: return((ifunc) imove);
+    case _OBJECT: return(itrue);
+    default:    return(inull);
+    }
     return(itrue);
 };
 
@@ -94,13 +94,13 @@ LOGICAL icopy_alloc(addr thi, headptr from)
 ifunc p_alloc(headptr h, int m, addr* aa)
 {
   switch(m) {
-	case _START: LOCK(h); break;
-	case _END:   UNLOCK(h); break;
-	case _DONE:  LOCK(h); rf_realloc(AD(h),0); break;
-	case _NEW:   AD(h)=anull; break;
-	case _COPY:  return(icopy_alloc);
-	default:   return p_object(h,m,aa);
-	} return(itrue);
+    case _START: LOCK(h); break;
+    case _END:   UNLOCK(h); break;
+    case _DONE:  LOCK(h); rf_realloc(AD(h),0); break;
+    case _NEW:   AD(h)=anull; break;
+    case _COPY:  return(icopy_alloc);
+    default:   return p_object(h,m,aa);
+    } return(itrue);
 };
 
 ifunc p_null(headptr h, int m, addr* aa)
@@ -112,9 +112,9 @@ LOGICAL class_init()
 { int i;
  pfunc_free = MAXMODE/2;
   for (i=0;i<MAXMODE;i++) {
-	pfunc_table[i]=p_null;
-	pname_table[i]=NULL;
-	};
+    pfunc_table[i]=p_null;
+    pname_table[i]=NULL;
+    };
   /* mode STRING must be first */
  if(NOT vregtype(p_string, "STRING",'S', STRING)) return(FALSE);
  if(NOT vregtype(p_char,   "CHAR",   0 , CHAR  )) return(FALSE);
@@ -129,4 +129,3 @@ LOGICAL class_init()
  if(NOT vregtype(p_fileio, "FILEIO", 0 , FILEIO)) return(FALSE);
  return(TRUE);
  };
-

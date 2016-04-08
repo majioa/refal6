@@ -53,15 +53,15 @@ static LOGICAL tochan(elemptr p, headptr * ah)       /* p --> h */
   *ah = NOHEAD;
   if(ISSNUMB(p))
     { n = VAL(p);
-	  if (n>=0 AND n<=MAXFILES) *ah=chan[n];
-	  else return(FALSE);
-	  }
+      if (n>=0 AND n<=MAXFILES) *ah=chan[n];
+      else return(FALSE);
+      }
   else if (ISREF(p)) {
-	  *ah=REF00(p);
-	  START(*ah);
-	  if(IFUNC(*ah,_CHANNEL)!=inull) return (TRUE);
-	  END(*ah);
-	  }
+      *ah=REF00(p);
+      START(*ah);
+      if(IFUNC(*ah,_CHANNEL)!=inull) return (TRUE);
+      END(*ah);
+      }
   return(FALSE);
   }
 
@@ -70,19 +70,19 @@ static LOGICAL toempty(elemptr p, headptr * ah)       /* p --> h */
 { int n;
   if(ISSNUMB(p))
     { n = VAL(p);
-	  if (n>=0 AND n<=MAXFILES) {
-		  if(chan[n]==NOHEAD)
-			 { if (NOT rf_mkempty(&(chan[n]))) return(FALSE); }
-		  else
-			 { if (NOT rf_getempty(chan[n])) return(FALSE); }
-		  *ah=chan[n]; return(TRUE);
-		  }
-	  else return(FALSE);
-	  }
+      if (n>=0 AND n<=MAXFILES) {
+          if(chan[n]==NOHEAD)
+             { if (NOT rf_mkempty(&(chan[n]))) return(FALSE); }
+          else
+             { if (NOT rf_getempty(chan[n])) return(FALSE); }
+          *ah=chan[n]; return(TRUE);
+          }
+      else return(FALSE);
+      }
   if (ISREF(p)) {
-		*ah=REF00(p);
-		return (rf_getempty(*ah));
-		};
+        *ah=REF00(p);
+        return (rf_getempty(*ah));
+        };
   return(FALSE);
   }
 
@@ -91,10 +91,10 @@ static LOGICAL chantbl(elemptr pl, elemptr pr, headptr* ac, headptr* at)
 {
  elemptr h;
  if (ISBRAC(pl)) {
-	h = REF(pl);
-	pl = NEXT(h);
-	pr =  PREV(h);
-	};
+    h = REF(pl);
+    pl = NEXT(h);
+    pr =  PREV(h);
+    };
   if (NOT tochan(pl,ac)) return(FALSE);
   *at = NOTABLE;
   return (pl==pr OR (ISREF(pr) AND ISTABLE(*at=REF00(pr))));
@@ -124,7 +124,7 @@ static LOGICAL rb_readx(LOGICAL line)
    popae(AeresL,AeresR);
    pope(EargL,EargR);
    if (EargL == NOELEM OR
-		NOT chantbl(EargL,EargR,&cp,&table)) return(FAIL);
+        NOT chantbl(EargL,EargR,&cp,&table)) return(FAIL);
    if (IFUNC(cp,_GETC)==inull)  return (FALSE);
    oldb=b;
    if (NOT rf_inpc(cp,Afreestor,(line?linefeed:termfeed),table))
@@ -132,11 +132,11 @@ static LOGICAL rb_readx(LOGICAL line)
    END(cp);
    if(b==oldb) *AeresL=*AeresR=NOELEM;
    else {
-	 *AeresL = NEXT(oldb);
-	 *AeresR = b;
-	 weld(oldb,NEXT(b));
-	 b=oldb;
-	 }
+     *AeresL = NEXT(oldb);
+     *AeresR = b;
+     weld(oldb,NEXT(b));
+     b=oldb;
+     }
    AFTER(b,EargL,EargR);
    return (TRUE);
 }
@@ -176,7 +176,7 @@ LOGICAL rb_read_char()
    popae(AeresL,AeresR);
    pope(EargL,EargR);
    if (EargL == NOELEM OR EargL != EargR OR NOT tochan((p=EargL),&cp))
-	   return(FAIL);
+       return(FAIL);
    gtc = (Tgetc)IFUNC(cp,_GETC); f=(FILE*)THIS;
    if (gtc==(Tgetc)inull)  return (FALSE);
    c = gtc(f);
@@ -195,18 +195,18 @@ LOGICAL rb_read_line()
    popae(AeresL,AeresR);
    pope(EargL,EargR);
    if (EargL == NOELEM OR EargL != EargR OR NOT tochan(EargL,&cp))
-	   return(FAIL);
+       return(FAIL);
    if (IFUNC(cp,_GETC)==inull)  return (FALSE);
    oldb=b;
    if(NOT rf_insc(cp,Afreestor)) return(FALSE);
    END(cp);
    if(b==oldb) *AeresL=*AeresR=NOELEM;
    else {
-	 *AeresL = NEXT(oldb);
-	 *AeresR = b;
-	 weld(oldb,NEXT(b));
-	 b=oldb;
-	 }
+     *AeresL = NEXT(oldb);
+     *AeresR = b;
+     weld(oldb,NEXT(b));
+     b=oldb;
+     }
    AFTER(b,EargL,EargR);
    return (TRUE);
 }
@@ -259,38 +259,38 @@ LOGICAL rb_open_file()
  /* Get mode symbol */
    if (ISCHAR(EargR)) {mod[0]=VAL(EargR); mod[1]=0;}
    else if (ISSWORD(EargR)) {
-		cvalue c;
-		c = DATA(EargR);
-		ALL(i,2) mod[i] = tolower(SWDBODY(c)[i]);
+        cvalue c;
+        c = DATA(EargR);
+        ALL(i,2) mod[i] = tolower(SWDBODY(c)[i]);
         i=SWD_LEN(CTYPE(c));
         mod[(i>2? 2:i)]=0;
-		}
+        }
    else return(FAIL);
  /* Get file name and open file */
    p=NEXT(EargL);
    if(NEXT(p)==EargR AND ISREF(p) AND MODE(TYPE(h=REF00(p)))==STRING) {
-	  START(h);
-		i=WDLEN(h);
-		if(WDREALLOC(h,i+1)==NOADR) return(FALSE);
-		WDFIRST(h)[i] = '\0';
-		  f=rf_open((char*)WDFIRST(h),mod);
-		WDREALLOC(h,i);
-	  END(h);
-	  }
+      START(h);
+        i=WDLEN(h);
+        if(WDREALLOC(h,i+1)==NOADR) return(FALSE);
+        WDFIRST(h)[i] = '\0';
+          f=rf_open((char*)WDFIRST(h),mod);
+        WDREALLOC(h,i);
+      END(h);
+      }
    else {
-	  for (i=0; p!=EargR; p = NEXT(p)) {
-		  if (i>=MAXFN OR NOT ISCHAR(p)) return(FALSE);
-		 fn[i++] = VAL(p);
-		 }
-	  fn[i] = '\0';
-	  f=rf_open(fn,mod);
-	  }
+      for (i=0; p!=EargR; p = NEXT(p)) {
+          if (i>=MAXFN OR NOT ISCHAR(p)) return(FALSE);
+         fn[i++] = VAL(p);
+         }
+      fn[i] = '\0';
+      f=rf_open(fn,mod);
+      }
  /**/
    elemfree(EargR);
    res = COMWORD[( f!=NULL? _T : _F )] ;
    SETDATA(EargR,res);
 /* if(NOT IS_SIMPL(CTYPE(res)) VAL(CREF00(res))++; */
-	 mk_fileio(cp,f);
+     mk_fileio(cp,f);
    *AeresL = *AeresR = EargR;
    AFTER(b,EargL,PREV(EargR));
    return (TRUE);
@@ -306,7 +306,7 @@ LOGICAL rb_eof()
    popae(AeresL,AeresR);
    pope(EargL,EargR);
    if (EargL == NOELEM OR EargL != EargR OR NOT tochan((p=EargL),&cp))
-	   return(FAIL);
+       return(FAIL);
    ifeof = (Tfeof) IFUNC(cp,_FEOF); f = (FILE*)THIS;
    if ((ifunc)ifeof==inull)  return (FALSE);
    res = COMWORD[( ifeof(f)? _T : _F )] ;
@@ -331,7 +331,7 @@ LOGICAL rb_erase_file()
       return (FAIL);
    i = 0;
    for (p = EargL; ; p = NEXT(p)) {
-		 if (NOT ISCHAR(p)) return(FAIL);
+         if (NOT ISCHAR(p)) return(FAIL);
          fn[i++] = VAL(p);
          if (i == MAXFN) break;
          if (p == EargR) break;
@@ -352,7 +352,7 @@ LOGICAL rb_close_chan()
    popae(AeresL,AeresR);
    pope(EargL,EargR);
    if (EargL == NOELEM OR EargL != EargR OR NOT toempty(EargL,&cp))
-	 return (FAIL);
+     return (FAIL);
    AFTER(b,EargL,EargR);
    *AeresL = *AeresR = NOELEM;
    return (TRUE);
@@ -399,16 +399,16 @@ LOGICAL rb_encode()
    if (EargL == NOELEM) return FAIL;
    if (NOT ISREF(EargL) OR NOT ISTABLE(table=REF00(EargL))) table=NOTABLE;
    if(EargL!=EargR) {
-	 rf_outm(NULL,(Tputc)lputc,NEXT(EargL),EargR,TRUE,table);
-	 if(rf_error==ERRSTOR) return(FALSE);
-	 };
+     rf_outm(NULL,(Tputc)lputc,NEXT(EargL),EargR,TRUE,table);
+     if(rf_error==ERRSTOR) return(FALSE);
+     };
    if(b==savb) { *AeresL=*AeresR=NOELEM; }
    else {
      *AeresL=NEXT(savb);
      *AeresR=b;
-	 weld(savb,NEXT(b));
-	 b=savb;
-	 }
+     weld(savb,NEXT(b));
+     b=savb;
+     }
    AFTER(b,EargL,EargR);
    return (TRUE);
 }
@@ -435,10 +435,10 @@ LOGICAL rb_decode()
    E2.L = NEXT(h); E2.R = PREV(h);
    AFTER(b,E.L,E.R);
    if (NOT res) {
-	  b=fl;
-	  if(NOT empty(E2)) { AFTERX(b,E2.L,E2.R); b=E2.R; }
+      b=fl;
+      if(NOT empty(E2)) { AFTERX(b,E2.L,E2.R); b=E2.R; }
           rf_error=0;
-	  };
+      };
    headptrfree(h);
    wres = COMWORD[( res? _T : _F )] ;
    SETDATA(fl,wres);
@@ -488,8 +488,8 @@ LOGICAL  rb_getenv()
    if(EargL==NOELEM) s=NULL;
    else {
      buf[0]=0; buf[1]=61;
-	 rf_outm((FILE*)buf,(Tputc)sputc,EargL,EargR,FALSE,NOTABLE);
-	 if(buf[0]==buf[1]) return(FAIL);
+     rf_outm((FILE*)buf,(Tputc)sputc,EargL,EargR,FALSE,NOTABLE);
+     if(buf[0]==buf[1]) return(FAIL);
      buf[buf[0]+2]=0;
      s = getenv(buf+2);
      }

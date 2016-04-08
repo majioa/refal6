@@ -10,10 +10,10 @@ OBJS = rfmain.o rfstor.o rfinter.o rfarm.o rbarm.o rbsys.o arithm.o rfserv.o \
 all: ri
 
 ri: $(OBJS)
-	$(CC) -o ri $(OBJS) -lm
+    $(CC) -o ri $(OBJS) -lm
 
 .c.o:
-	$(CC) $*.c -O -c -ggdb
+    $(CC) $*.c -O -c -ggdb
 
 rfmain.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h
 rfstor.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h channel.h contain.h rfalloc.h
@@ -25,8 +25,8 @@ rfinter.o: refcom.h config.h refelem.h rfstor.h class.h refgen.h refint.h
 rbeval.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h refint.h
 rfgo.o:    refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h rfalloc.h refint.h fileio.h
 rbio.o:    refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h fileio.h channel.h
-rfarm.o:   refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h rbarm.h arithm.h 
-rbarm.o:   refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h rbarm.h arithm.h 
+rfarm.o:   refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h rbarm.h arithm.h
+rbarm.o:   refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h rbarm.h arithm.h
 rbsys.o:   refcom.h config.h refelem.h rfstor.h class.h refgen.h
 arithm.o:  arithm.h
 refgen.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h

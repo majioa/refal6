@@ -38,7 +38,7 @@ static char* GRWS[NGRW] = {
  "Draw", "Fill", "Move", "To", "From",
  "Out", "Text", "Front", "Area",
  "Pixel", "Line", "Rectangle", "Ellipse", "Polygon",
- "Color", "BackColor", "Background", 
+ "Color", "BackColor", "Background",
  "ClipArea", "Base", "Current", "Mapping", "ActivePage", "VisualPage",
  "Shift", "Extension", "Rotation",
  "Function", "Palette", "DrawStyle", "FillStyle", "Font",
@@ -60,7 +60,7 @@ static ifunc p_video(headptr h, int m, addr * aa);
 static LOGICAL VideoInit=FALSE;
 
 void inivideo()
-{ 
+{
    if(NOT INIWORDS(NGRW,GRW,GRWS)) rf_err(ERCINIT);
    c_video = iregtype (p_video, "VIDEO", 0);
 };
@@ -166,7 +166,7 @@ static LOGICAL rf_get_rect(rect Rect)
 static LOGICAL rf_get_palette(palette * aPalette)
 {  int k;
    bl;
-   ALL(k,aPalette->size) 
+   ALL(k,aPalette->size)
       if(NOT rf_mknumb((long)(aPalette->colors[k]))) return(FALSE);
    br;
    return(TRUE);
@@ -212,7 +212,7 @@ static LOGICAL gr_get_onoff(cvalue vc, int* amode)
 typedef enum { _SCREEN, _CAMERA, _WORLD } spacemode;
 
 static void add_cpos(cpos* ap, cpos* aq, long N)
-{ 
+{
   ap->X += N*aq->X;
   ap->Y += N*aq->Y;
   ap->Z += N*aq->Z;
@@ -244,30 +244,30 @@ static LOGICAL gr_get_pos_c (tvideo * av, cvalue cc, cpos* aP, povec PoVec)
     LOGICAL res = TRUE;
     spacemode  map = _SCREEN;
     if (IS_SIMPL(CTYPE(cc))) return(FAIL);
-  	h = CREF00(cc); /* cc IS-REF */
-	if(IFUNC(h,_CONTAIN)==inull) return(FAIL);
-	START(h);
-	  EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
-	  igetn = (Tgetn) IFUNC(h,_GETN); thi = THIS;
+      h = CREF00(cc); /* cc IS-REF */
+    if(IFUNC(h,_CONTAIN)==inull) return(FAIL);
+    START(h);
+      EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
+      igetn = (Tgetn) IFUNC(h,_GETN); thi = THIS;
       if(NOT igetn(thi,&t,&fc)) { res=FAIL; }
-      cr.X = cr.Y = cr.Z = 0; 
+      cr.X = cr.Y = cr.Z = 0;
            if(fc==GRW[_A]) { cr.X = -(av->Base.X)*(av->Norm);
                              cr.Y = -(av->Base.Y)*(av->Norm);
                              }
       else if(fc==GRW[_B]) { }
-      else if(fc==GRW[_C]) { cr = av->Current; } 
+      else if(fc==GRW[_C]) { cr = av->Current; }
       else if(fc==GRW[_K]) {                   map = _CAMERA; }
       else if(fc==GRW[_L]) { cr = av->Current; map = _CAMERA; }
       else if(fc==GRW[_P]) { cr = av->Origin;  map = _WORLD; }
       else if(fc==GRW[_Q]) { cr = av->Current; map = _WORLD; }
       else res = FAIL;
-  	  if(res==TRUE) for (k=0; igetn(thi,&t,&cc); k++ ) {
+        if(res==TRUE) for (k=0; igetn(thi,&t,&cc); k++ ) {
          long N;
          if((res=rf_cgetnumb(cc,&N))!=TRUE) break;
               if (map==_WORLD AND k < (av->Dim))
                                          add_cpos(&cr,&(av->Basis[k]),N);
-         else if(map==_CAMERA AND k < 3) ((long*)(&cr))[k] += N; 
-         else if(map==_SCREEN AND k < 2) ((long*)(&cr))[k] += (av->Norm)*N; 
+         else if(map==_CAMERA AND k < 3) ((long*)(&cr))[k] += N;
+         else if(map==_SCREEN AND k < 2) ((long*)(&cr))[k] += (av->Norm)*N;
          else { res=FAIL; break; }
          }
     END(h);
@@ -318,42 +318,42 @@ static LOGICAL gr_get_map(tvideo * av, cvalue cc)
     headptr h; int k,i;
     LOGICAL res = FAIL;
     if (IS_SIMPL(CTYPE(cc))) return(FAIL);
-  	h = CREF00(cc); /* cc IS-REF */
-	if(IFUNC(h,_CONTAIN)==inull) return(FAIL);
-	START(h);
-	  EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
-	  igetn = (Tgetn) IFUNC(h,_GETN); thi = THIS;
+      h = CREF00(cc); /* cc IS-REF */
+    if(IFUNC(h,_CONTAIN)==inull) return(FAIL);
+    START(h);
+      EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
+      igetn = (Tgetn) IFUNC(h,_GETN); thi = THIS;
       /* Save old Current */
       SavCur = av->Current;
       /* Get Origin */
       if(NOT igetn(thi,&t,&vc)) goto qfail;
-		   if(vc==GRW[_Shift]) {  /* (Shift t.Pos) */
+           if(vc==GRW[_Shift]) {  /* (Shift t.Pos) */
                if(NOT igetn(thi,&t,&vc)) goto qfail;
                if((res=gr_get_pos_c(av,vc,&o,_POINT))!=TRUE) goto qfail;
                av->Origin    = av->Current;
                }
-	  else if(vc==GRW[_Extension]) {  /* (Extention s.Num s.Denom) */
+      else if(vc==GRW[_Extension]) {  /* (Extention s.Num s.Denom) */
                /* Get Num */
                if(NOT igetn(thi,&t,&nc)) goto qfail;
                if(rf_cgetnumb(nc,&n)!=TRUE) goto qfail;
                /* Get Denom */
                if(NOT igetn(thi,&t,&nc)) goto qfail;
-			   if(rf_cgetnumb(nc,&d)!=TRUE) goto qfail;
-			   ALL(i,av->Dim) {
+               if(rf_cgetnumb(nc,&d)!=TRUE) goto qfail;
+               ALL(i,av->Dim) {
                   muldiv_cpos(&(av->Basis[i]),n,1);
                   muldiv_cpos(&(av->Basis[i]),1,d);
                }  }
-	  else if(vc==GRW[_Rotation]) {  /* (Rotation s1 s2 s.Angle) */
-			   int num[3];
+      else if(vc==GRW[_Rotation]) {  /* (Rotation s1 s2 s.Angle) */
+               int num[3];
                /* Get i1, i2, angle */
                ALL(i,3) {
                  if(NOT igetn(thi,&t,&nc)) goto qfail;
-				 if(rf_cgetnumb(nc,&n)!=TRUE) goto qfail;
-				 num[i] = (int) n;
-				 }
-			   ALL(i,2) if(num[i]<=0 OR num[i] > av->Dim) goto qfail;
-			   rotate(&(av->Basis[num[0]-1]),
-					  &(av->Basis[num[1]-1]),
+                 if(rf_cgetnumb(nc,&n)!=TRUE) goto qfail;
+                 num[i] = (int) n;
+                 }
+               ALL(i,2) if(num[i]<=0 OR num[i] > av->Dim) goto qfail;
+               rotate(&(av->Basis[num[0]-1]),
+                      &(av->Basis[num[1]-1]),
                       num[2]
                       );
                }
@@ -363,7 +363,7 @@ static LOGICAL gr_get_map(tvideo * av, cvalue cc)
       if(NOT igetn(thi,&t,&nc)) goto qfail;
       if(rf_cgetnumb(nc,&n)!=TRUE) goto qfail;
       /* Get Basis */
-  	  for (k=0; igetn(thi,&t,&vc); k++ ) {
+        for (k=0; igetn(thi,&t,&vc); k++ ) {
          if(k>MAXDIM) goto qfail;
          if((res=gr_get_pos_c(av,vc,&(m[k]),_VECTOR))!=TRUE) goto qfail;
          muldiv_cpos(&(m[k]), 1L, av->Norm);
@@ -447,14 +447,14 @@ static LOGICAL gr_get_font(cvalue vc, font* aFont)
 static LOGICAL gr_get_rect(tvideo * av, cvalue cc, rect * aRect)
 {   cvalue vc;
     tail t; Tgetn igetn; addr thi;
-	headptr h;
+    headptr h;
     LOGICAL res = FAIL;
     if (IS_SIMPL(CTYPE(cc))) return(FAIL);
-  	h = CREF00(cc); /* cc IS-REF */
-	if(IFUNC(h,_CONTAIN)==inull) return(FAIL);
-	START(h);
-	  EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
-	  igetn = (Tgetn) IFUNC(h,_GETN); thi = THIS;
+      h = CREF00(cc); /* cc IS-REF */
+    if(IFUNC(h,_CONTAIN)==inull) return(FAIL);
+    START(h);
+      EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
+      igetn = (Tgetn) IFUNC(h,_GETN); thi = THIS;
       /* Get Point */
       if(NOT igetn(thi,&t,&vc)) goto qfail;
       if((res=gr_get_pos(av,vc,&(aRect->P),_PAG))!=TRUE) goto qfail;
@@ -469,7 +469,7 @@ qfail:
 
 static void intersegment(intpos* ap1, intpos* av1, intpos p2, intpos v2)
 {   intpos q1, q2;
-	if (*av1<0) { *ap1 += *av1; *av1 = -*av1; };
+    if (*av1<0) { *ap1 += *av1; *av1 = -*av1; };
     q1 = *ap1 + *av1;           q2 = p2 + v2;
     if(*ap1<p2) *ap1=p2;        if(q1>q2) q1=q2;
     *av1 = q1-*ap1;             if(*av1<0) *av1=0;
@@ -483,13 +483,13 @@ static LOGICAL gr_get_palette(cvalue cc, palette * aPalette)
     headptr h; int k;
     LOGICAL res = FAIL;
     if (IS_SIMPL(CTYPE(cc))) return(FAIL);
-  	h = CREF00(cc); /* cc IS-REF */
-	if(IFUNC(h,_CONTAIN)==inull) return(FAIL);
-	START(h);
-	  EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
-	  igetn = (Tgetn) IFUNC(h,_GETN); thi = THIS;
+      h = CREF00(cc); /* cc IS-REF */
+    if(IFUNC(h,_CONTAIN)==inull) return(FAIL);
+    START(h);
+      EVAL(h,_SETPOS,Tsetpos,(THIS,&t,0));
+      igetn = (Tgetn) IFUNC(h,_GETN); thi = THIS;
       /* Get Palette */
-  	  for (k=0; k<aPalette->size AND igetn(thi,&t,&vc); k++ ) {
+        for (k=0; k<aPalette->size AND igetn(thi,&t,&vc); k++ ) {
          if((res=gr_get_color(vc,&Col))!=TRUE) goto qfail;
          aPalette->colors[k] = Col;
          };
@@ -500,7 +500,7 @@ qfail:
     };
 
 static LOGICAL video_reset(tvideo * av, int w)
-{ if (VideoInit) 
+{ if (VideoInit)
    switch(w) {       case 0:
      case _Color:      SETCOLOR(av);
      case _BackColor:  SETTEXTCOLOR(av); if(w) break;
@@ -680,8 +680,8 @@ while(TRUE) {
     if(NOT empty(eM)) return(FAIL);
     if((res=gr_get_vec(av,vc,&v))!=TRUE) return(res);
     if (v.X!=0 AND v.Y!=0) {
-	  q.X = p.X + v.X; /* if (v.X>0) q.X--; else p.X--; */
-	  q.Y = p.Y + v.Y; /* if (v.Y>0) q.Y--; else p.Y--; */
+      q.X = p.X + v.X; /* if (v.X>0) q.X--; else p.X--; */
+      q.Y = p.Y + v.Y; /* if (v.Y>0) q.Y--; else p.Y--; */
       if(p.X<0) p.X=0; if(p.Y<0) p.Y=0; /* patch for Turbo C 2.0 */
       if(VideoInit) {
         if(mode==_Draw) Rectangle(av, p.X, p.Y, q.X, q.Y);
@@ -730,7 +730,7 @@ while(TRUE) {
            if((res=gr_get_pos(av,vc,&(P[l%MAXPOINTS]),_BGI))!=TRUE) return res;
            }
         if(l>=MAXPOINTS) {
-		   if(REALLOC(a,(l+1)*sizeof(pos))==NOADR) return(FALSE);
+           if(REALLOC(a,(l+1)*sizeof(pos))==NOADR) return(FALSE);
            ap = (pos*) SEGINF(a);
            av->Current = cp; /* restore Current */
            ALL(k,l) {
@@ -864,7 +864,7 @@ static LOGICAL move(tvideo* av, expr eM)
                  if(p.X<0 OR p.Y<0 OR q.X<0 OR q.Y<0) res=FAIL;
                  else if(VideoInit) {
                     unsigned size = imagesize(p.X, p.Y, q.X, q.Y);
-				    if(REALLOC(AD(h),size)==NOADR) res=FAIL;
+                    if(REALLOC(AD(h),size)==NOADR) res=FAIL;
                     else getimage(p.X, p.Y, q.X, q.Y, SEGINF(AD(h)));
                  }  }
          else if(dc==GRW[_From]) {
@@ -908,15 +908,15 @@ static LOGICAL toscreen(tvideo* av, expr eM)
        if (mc==GRW[_A]) {
             if((res=gr_get_pos(av,vc,&p,_ABS))!=TRUE) return(res);
             if(NOT rf_get_pos(_A, &p)) return(FALSE);
-	    }
+        }
        else if (mc==GRW[_B]) {
             if((res=gr_get_pos(av,vc,&p,_BAS))!=TRUE) return(res);
             if(NOT rf_get_pos(_B, &p)) return(FALSE);
-	    }
+        }
        else if (mc==GRW[_C]) {
             if((res=gr_get_vec(av,vc,&p))!=TRUE) return(res);
             if(NOT rf_get_pos(_C, &p)) return(FALSE);
-	    }
+        }
        else return FAIL;
        }
     return TRUE;
@@ -932,8 +932,8 @@ static LOGICAL comnd_list(tvideo* av, expr eM)
  while (NOT empty(eM)) {
     CAR(eM,tc);
     if (IS_SIMPL(CTYPE(tc))) return(FAIL);
-  	h = CREF00(tc); /* cc IS-REF */
-	if(MODE(TYPE(h)) != CHAIN) return(FAIL);
+      h = CREF00(tc); /* cc IS-REF */
+    if(MODE(TYPE(h)) != CHAIN) return(FAIL);
     eC.L = NEXT(h);
     if(eC.L == h) return(FAIL);
     eC.R = PREV(h);
@@ -981,19 +981,19 @@ static LOGICAL comnd(tvideo* av, expr eM)
        video_reset(av,0);
        }
   else if(mc==GRW[_MakeInstance]) {
-	 headptr rh; cvalue rc;
+     headptr rh; cvalue rc;
      end_font(&(av->Font));
      CAR(eM,rc)
      if(NOT empty(eM)) return(FAIL);
      if (IS_SIMPL(CTYPE(rc))) return(FAIL);
      rh = CREF00(rc);
-	 if(NOT rf_get_empty(rh,HD(c_video,OBJ))) return(FAIL);
+     if(NOT rf_get_empty(rh,HD(c_video,OBJ))) return(FAIL);
      START(rh);
      * (tvideo*) SEGINF(AD(rh)) = *av;
      cvalact(av->Font.cfont);
      END(rh);
 /*   COPSYMB(rc); */
-	 }
+     }
   else return(FAIL);
   return(res);
 }
@@ -1030,7 +1030,7 @@ ifunc p_video(headptr h, int m, addr * aa)
        *aa = (addr) av;
        return((ifunc)iputc);
        }
-	 case _VIDEO:
+     case _VIDEO:
      case _CHANNEL: return(itrue);
      case _NEW:
        AD(h)=anull;

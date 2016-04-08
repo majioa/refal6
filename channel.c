@@ -16,8 +16,8 @@ ifunc p_channel(headptr h, int code, addr * aa)
     case _GETC :
     case _PUTC :
     case _FEOF :
-	case _UNGETC : return(ieof);
-	case _CHANNEL : return(itrue);
-	default: return(p_object(h,code,aa));
-	}
+    case _UNGETC : return(ieof);
+    case _CHANNEL : return(itrue);
+    default: return(p_object(h,code,aa));
+    }
 };

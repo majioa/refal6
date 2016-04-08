@@ -162,16 +162,16 @@ fail:
   *aa = ((rfslide *) SEGINF (adh))->sptr;
   switch (code)
     { case _START:
-		{ screen  * sptr;
-		  rfslide * rptr;
+        { screen  * sptr;
+          rfslide * rptr;
           if (p_alloc (h, code, aa) == inull) goto fail;
           rptr = (rfslide *) SEGINF (AD(h));
           sptr = rptr->sptr = (screen *) ((char *) rptr + sizeof (rfslide));
           if (rptr->optr != h  OR  rptr->odx | rptr->ody != 0) goto fail;
-		  sptr->sptr = sptr;
-		  slide_pos_set (sptr, sptr->posx, sptr->posy);
-		}
-		  break;
+          sptr->sptr = sptr;
+          slide_pos_set (sptr, sptr->posx, sptr->posy);
+        }
+          break;
       case _SCREEN:
           break;
       case _MAKE_SUBSLIDE:

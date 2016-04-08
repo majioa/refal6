@@ -24,7 +24,7 @@
 
 typedef enum {
  _MOUSE, _Init, _Done,
- _Get, _Check, _None, 
+ _Get, _Check, _None,
  _Drag, _KbdMouse, _Pointer,
  _MovePointer, _On, _Off,
  _Kbd, _ASCII, _Ctrl, _Func,
@@ -45,7 +45,7 @@ static char* EVWS[NEVW] = {
  };
 
 void inimouse()
-{ 
+{
   if(NOT INIWORDS(NEVW,EVW,EVWS)) rf_err(ERCINIT);
   }
 
@@ -113,9 +113,9 @@ static LOGICAL rf_get_event(LOGICAL wait)
     rf_mknumb((long)(event.ptrX));
     rf_mknumb((long)(event.ptrY));
     return(TRUE);
-    }    
+    }
 
-    
+
 
 static int pointercounter = -1;
 
@@ -130,7 +130,7 @@ LOGICAL rb_mouse()
    bstart=b;
    res = TRUE;
    CAR(eM,nc);
-        if(nc==EVW[_Get])   res = rf_get_event(TRUE); 
+        if(nc==EVW[_Get])   res = rf_get_event(TRUE);
    else if(nc==EVW[_Check]) res = rf_get_event(FALSE);
    else if(nc==EVW[_Drag]) switch(ev_get_onoff(&eM)) {
           case OFF:   ED_DragOff(); break;
@@ -143,13 +143,13 @@ LOGICAL rb_mouse()
           case ON:    ED_KbdMouseOn (); break;
           case EMP:   rf_mk_onoff(ED_KbdMouseState()); break;
           case ERR:   res=FAIL;
-          } 
+          }
    else if(nc==EVW[_Pointer]) switch(ev_get_onoff(&eM)) {
           case OFF:   pointercounter = ED_HidePointer(); break;
           case ON:    pointercounter = ED_DisplayPointer (); break;
           case EMP:   rf_mk_onoff(pointercounter >= 0); break;
           case ERR:   res=FAIL;
-          } 
+          }
    else if(nc==EVW[_MovePointer]) {
            cvalue xc,yc;
            CAR(eM,xc);
@@ -157,18 +157,18 @@ LOGICAL rb_mouse()
            CAR(eM,yc);
            if(NOT IS_SNUMB(CTYPE(yc))) return(FAIL);
            ED_MovePointer(CVAL(xc), CVAL(yc));
-           }   
+           }
    else if(nc==EVW[_Init]) ED_Init();
    else if(nc==EVW[_Done]) ED_Done();
    else return(FAIL);
    if(res != TRUE) { b=bstart; return(res); }
    else if(b==bstart) *AeresL = *AeresR = NOELEM;
    else {
-		*AeresL = NEXT(bstart);
-		*AeresR= b;
-		weld(bstart,NEXT(b));
-		b = bstart;
-		}
+        *AeresL = NEXT(bstart);
+        *AeresR= b;
+        weld(bstart,NEXT(b));
+        b = bstart;
+        }
    AFTER(b,EargL,EargR);
    return(TRUE);
    };

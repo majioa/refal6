@@ -1,6 +1,6 @@
 # For AT 386 -> ( Large memory model, 32 bit address )
 
-goal: ri.exe 
+goal: ri.exe
 
 ri.exe: a.out
    copy /b e:\djgpp\bin\go32.exe+a.out ri.exe
@@ -46,4 +46,3 @@ rftable.o: refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h
 rbtable.o: refcom.h config.h refelem.h rfstor.h class.h refgen.h rftable.h
 rbclass.o: refcom.h config.h refelem.h rfstor.h class.h refgen.h
 rbcont.o:  refcom.h config.h refelem.h rfstor.h class.h refgen.h rfalloc.h contain.h
-

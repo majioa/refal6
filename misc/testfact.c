@@ -38,7 +38,7 @@ times(&t1); fact(1,b,B,mlB,&lB); times(&t2);
 printf("\nB=%d! ready",b);
 dt=t2-t1; printf(" time=%d.%02d", dt/100, dt%100);
 
-k=4096; C[0]=0; lC=1; /* �ਡ����� A � C k ࠧ */
+k=4096; C[0]=0; lC=1; /* Прибавить A к C k раз */
 times(&t1); ALL(i,k) {
       ra_adds(A,lA,C,lC,1,C,mlC,&lC);
 /*    ra_addm(A,lA,C,lC,1,1,C,mlC,&lC); */
@@ -69,4 +69,3 @@ dt=t2-t1; printf(" time=%d.%02d", dt/100, dt%100);
 getch();
 return;
 }
-

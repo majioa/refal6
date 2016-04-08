@@ -49,7 +49,7 @@ LOGICAL rf_mk_creal(double x, cvalue* ac, LOGICAL simple)
         }
    else {
         headptr h;
-		real r = x;
+        real r = x;
         ECALL( rf_mk_hreal(r,&h) );
         *ac = CMKREF(h,TYPELVAL);
         }
@@ -64,7 +64,7 @@ LOGICAL rf_mk_creal(double x, cvalue* ac, LOGICAL simple)
       else if (IS_REF(t))                                         \
         switch(MODE(TYPE(h=CREF00(n)))) {                         \
             case MASK: m=_LINT; break;                            \
-			case REAL: head2real(h,r); m=_LREAL; break;           \
+            case REAL: head2real(h,r); m=_LREAL; break;           \
             default: m=_OTHER_NUMBER;                             \
             }                                                     \
       else m=_OTHER_NUMBER;                                       \
@@ -72,16 +72,16 @@ LOGICAL rf_mk_creal(double x, cvalue* ac, LOGICAL simple)
 
 LOGICAL rf_arop(cvalue n1, cvalue n2, optype op, cvalue* ac, int nres)
 /*
-   n1,n2 - операнды виртуальные,
-   op - операция: _ADD, _SUB, _MUL, _REL, _DIV, _MOD, _DIVMOD,
+   n1,n2 - РѕРїРµСЂР°РЅРґС‹ РІРёСЂС‚СѓР°Р»СЊРЅС‹Рµ,
+   op - РѕРїРµСЂР°С†РёСЏ: _ADD, _SUB, _MUL, _REL, _DIV, _MOD, _DIVMOD,
                  _AND, _XOR, _OR;
    _DIV, _DIVMOD -
-        для вещ чисел делит нацело и выдает частное и остаток
-   _REL - "отношение" - для целых определена только когда делится нацело
-   ac - массив для результатов актуальных длины 1 или 2
-   nres - длина массива ac (1 или 2); nres=2 только для op='\\'.
-   счетчик ссылок 1 для n1 и n2 означает, что их содержимые можно
-   использовать, изменяя, для формирования результатов
+        РґР»СЏ РІРµС‰ С‡РёСЃРµР» РґРµР»РёС‚ РЅР°С†РµР»Рѕ Рё РІС‹РґР°РµС‚ С‡Р°СЃС‚РЅРѕРµ Рё РѕСЃС‚Р°С‚РѕРє
+   _REL - "РѕС‚РЅРѕС€РµРЅРёРµ" - РґР»СЏ С†РµР»С‹С… РѕРїСЂРµРґРµР»РµРЅР° С‚РѕР»СЊРєРѕ РєРѕРіРґР° РґРµР»РёС‚СЃСЏ РЅР°С†РµР»Рѕ
+   ac - РјР°СЃСЃРёРІ РґР»СЏ СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ Р°РєС‚СѓР°Р»СЊРЅС‹С… РґР»РёРЅС‹ 1 РёР»Рё 2
+   nres - РґР»РёРЅР° РјР°СЃСЃРёРІР° ac (1 РёР»Рё 2); nres=2 С‚РѕР»СЊРєРѕ РґР»СЏ op='\\'.
+   СЃС‡РµС‚С‡РёРє СЃСЃС‹Р»РѕРє 1 РґР»СЏ n1 Рё n2 РѕР·РЅР°С‡Р°РµС‚, С‡С‚Рѕ РёС… СЃРѕРґРµСЂР¶РёРјС‹Рµ РјРѕР¶РЅРѕ
+   РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ, РёР·РјРµРЅСЏСЏ, РґР»СЏ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ
 */
 {
   int res = TRUE, i;
@@ -99,29 +99,29 @@ LOGICAL rf_arop(cvalue n1, cvalue n2, optype op, cvalue* ac, int nres)
           switch(op) {
               case _ADD    : l = l1+l2; break;
               case _SUB    : l = l1-l2; break;
-			  case _MUL    : l = l1*l2; break;
-			  case _MOD: case _DIV: case _DIVMOD: case _GCDSTEP:
-				 if(l2==0) return(FAIL);
-				 switch(op) {
-					case     _MOD : l    = l1%l2; break;
-					case  _DIVMOD : L[1] = l1%l2;
-					case     _DIV : l    = l1/l2; break;
-					case _GCDSTEP : { long p1=1,p2=0,q1=0,q2=1,p,q,k;
-						while (l2!=0) { k=l1/l2;
+              case _MUL    : l = l1*l2; break;
+              case _MOD: case _DIV: case _DIVMOD: case _GCDSTEP:
+                 if(l2==0) return(FAIL);
+                 switch(op) {
+                    case     _MOD : l    = l1%l2; break;
+                    case  _DIVMOD : L[1] = l1%l2;
+                    case     _DIV : l    = l1/l2; break;
+                    case _GCDSTEP : { long p1=1,p2=0,q1=0,q2=1,p,q,k;
+                        while (l2!=0) { k=l1/l2;
                             l=l1-k*l2; l1=l2; l2=l;
                             p=p1-k*p2; p1=p2; p2=p;
                             q=q1-k*q2; q1=q2; q2=q;
                             };
                         l=l1; L[1]=l2; L[2]=p1; L[3]=p2; L[4]=q1; L[5]=q2;
                         }
-					} break;
+                    } break;
               case _AND : l = l1&l2; break;
               case _XOR : l = l1^l2; break;
               case _OR  : l = l1|l2; break;
               default: return FAIL;
-			  };
+              };
           L[0]=l;
-		  ALL(i,nres) if((res=rf_mk_cnumb(L[i], ac+i, TRUE))!=TRUE) return res;
+          ALL(i,nres) if((res=rf_mk_cnumb(L[i], ac+i, TRUE))!=TRUE) return res;
           break;
           };
      case _LINT: res=rf_int_op(n1,n2,op,ac,nres); break;
@@ -131,20 +131,20 @@ LOGICAL rf_arop(cvalue n1, cvalue n2, optype op, cvalue* ac, int nres)
           if(m2<_SREAL) rf_cgetreal(n2,&r2);
           /* real x real x op -> real */
           switch(op) {
-			  case _ADD: r = r1+r2; break;
-			  case _SUB: r = r1-r2; break;
-			  case _MUL: r = r1*r2; break;
-			  case _DIV: r = r1/r2; break;
-			  case _MOD: r = fmod((double)r1,(double)r2); break;
-			  case _DIVMOD: { double d;
+              case _ADD: r = r1+r2; break;
+              case _SUB: r = r1-r2; break;
+              case _MUL: r = r1*r2; break;
+              case _DIV: r = r1/r2; break;
+              case _MOD: r = fmod((double)r1,(double)r2); break;
+              case _DIVMOD: { double d;
                  r = fmod((double)r1,(double)r2);
                  if((res=rf_mk_creal(r,ac+1,m==_SREAL))!=TRUE) return res;
-			     modf(r1/r2,&d); r = d; break;
+                 modf(r1/r2,&d); r = d; break;
                  }
               default: return FAIL;
               };
-		  res=rf_mk_creal(r,ac,m==_SREAL);
-		  break;
+          res=rf_mk_creal(r,ac,m==_SREAL);
+          break;
           };
      case _OTHER_NUMBER: return FAIL;
      };
@@ -177,14 +177,14 @@ static int res;
 
 LOGICAL rf_func(aftype fun, cvalue arg, cvalue* ares)
 /*
-   Вычисление числовой функции fun одного числового аргумента:
+   Р’С‹С‡РёСЃР»РµРЅРёРµ С‡РёСЃР»РѕРІРѕР№ С„СѓРЅРєС†РёРё fun РѕРґРЅРѕРіРѕ С‡РёСЃР»РѕРІРѕРіРѕ Р°СЂРіСѓРјРµРЅС‚Р°:
    Sign: Int -> Sint
          Real -> Sint
    Abs:  Int -> Int
          Sreal -> Sreal
          Lreal -> Lreal
-   arg - аргумент виртуальный
-   ares - результат актуальный
+   arg - Р°СЂРіСѓРјРµРЅС‚ РІРёСЂС‚СѓР°Р»СЊРЅС‹Р№
+   ares - СЂРµР·СѓР»СЊС‚Р°С‚ Р°РєС‚СѓР°Р»СЊРЅС‹Р№
 */
 {
   real r;
@@ -206,7 +206,7 @@ LOGICAL rf_func(aftype fun, cvalue arg, cvalue* ares)
 
   switch (fun) {
      case _Sign: *ares = CMKSIM(s,TYPESNUMB); break;
-	 case _Abs:  res = rf_arop(CMKSIM(s,TYPESNUMB),arg,_MUL,ares,1); break;
+     case _Abs:  res = rf_arop(CMKSIM(s,TYPESNUMB),arg,_MUL,ares,1); break;
      default: res = FAIL;
      };
   return res;
@@ -214,14 +214,14 @@ LOGICAL rf_func(aftype fun, cvalue arg, cvalue* ares)
 
 LOGICAL rf_rfunc(aftype fun, cvalue arg, cvalue* ares)
 /*
-   Вычисление вещественной функции fun одного вещественного аргумента
+   Р’С‹С‡РёСЃР»РµРЅРёРµ РІРµС‰РµСЃС‚РІРµРЅРЅРѕР№ С„СѓРЅРєС†РёРё fun РѕРґРЅРѕРіРѕ РІРµС‰РµСЃС‚РІРµРЅРЅРѕРіРѕ Р°СЂРіСѓРјРµРЅС‚Р°
    fun =
          Sin  | Cos  | Tg  |
          Asin | Acos | Atg |
          Sinh | Cosh | Tgh |
          Sqrt | Exp  | Log
-   arg - аргумент виртуальный
-   ares - результат актуальный
+   arg - Р°СЂРіСѓРјРµРЅС‚ РІРёСЂС‚СѓР°Р»СЊРЅС‹Р№
+   ares - СЂРµР·СѓР»СЊС‚Р°С‚ Р°РєС‚СѓР°Р»СЊРЅС‹Р№
 */
 {
   real a; double aa,rr;
@@ -241,9 +241,9 @@ LOGICAL rf_rfunc(aftype fun, cvalue arg, cvalue* ares)
       case _Cosh : rr = cosh(aa); break;
       case _Tan  : rr = tan (aa); break;
       case _Atan : rr = atan(aa); break;
-	  case _Tanh : rr = tanh(aa); break;
+      case _Tanh : rr = tanh(aa); break;
       default: return FAIL;
-	  };
+      };
   if(res!=TRUE) return res;
   return rf_mk_creal(rr, ares, IS_SIMPL(CTYPE(arg)) );
   };
@@ -266,7 +266,7 @@ LOGICAL rb_func ()
    pope(EargL,EargR);
    savb = b;
    if (EargL == NULL OR EargL == EargR OR NEXT(EargL) != EargR )
-	  return(FAIL);
+      return(FAIL);
    cfun = DATA(EargL);
    ALL(fun,NAF) if(AF[fun]==cfun) break;
    switch (fun) {
@@ -364,15 +364,15 @@ LOGICAL rf_ar_int(cvalue n, cvalue* ac, numbermode m)
       else return FAIL;
       if(m==_SINT) {
          ushort C;
-		 ra_double2int((double)r,&C,1);
+         ra_double2int((double)r,&C,1);
          *ac= CMKSIM(C,TYPESNUMB);
          return TRUE;
          };
       /* Evaluate lX */
       for(x=r,lX=1; x<-1.0 OR x>=1.0 ; lX++) x/=base;
-	  ECALL(ALLOC(adX,MSIZE(lX))!=NOADR)
+      ECALL(ALLOC(adX,MSIZE(lX))!=NOADR)
       X = (MPOS)SEGINF(adX);
-	  ra_double2int((double)r,X,lX);
+      ra_double2int((double)r,X,lX);
       res = rf_mk_numb(X,lX,ac,TRUE);
       REALLOC(adX,0);
       return(res);
@@ -421,7 +421,7 @@ LOGICAL rb_arop (char op, int nres)
    pope(EargL,EargR);
    savb = b;
    if (EargL == NULL OR EargL == EargR OR NEXT(EargL) != EargR )
-	  return(FAIL);
+      return(FAIL);
    RCALL( res, rf_arop(DATA(EargL), DATA(EargR), op, c, nres) );
    ALL(i,nres) {
      movb;
@@ -455,13 +455,13 @@ LOGICAL rb_compare()
    popae(AeresL,AeresR);
    pope(EargL,EargR);
    if (EargL == NULL OR EargL == EargR OR NEXT(EargL) != EargR)
-		 return(FAIL);
+         return(FAIL);
    c = rf_cmp(EargL,EargL,EargR,EargR);
    movb;
-	 if (c >0) SETSIM(b,'>',TYPECHAR);
-	 if (c <0) SETSIM(b,'<',TYPECHAR);
-	 if (c==0) SETSIM(b,'=',TYPECHAR);
-	 *AeresL = *AeresR = b;
+     if (c >0) SETSIM(b,'>',TYPECHAR);
+     if (c <0) SETSIM(b,'<',TYPECHAR);
+     if (c==0) SETSIM(b,'=',TYPECHAR);
+     *AeresL = *AeresR = b;
    BETWEEN(savb,NEXT(b),EargL,EargR);
    b = savb;
    return (TRUE);

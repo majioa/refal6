@@ -35,4 +35,3 @@ int      snap_curs_set   (snap * sptr, int curx, int cury, int curt);
 
 #endif  /* __SCREEN_H */
                           /* End of Screen.h */
-

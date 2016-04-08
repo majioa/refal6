@@ -1,6 +1,6 @@
 /******************************************************************
    R E F A L - 6      Copyright (C) 1990 IPS AN 1992 Arkady Klimov
-	   refint.h    -  declarations for RASL-interpreter
+       refint.h    -  declarations for RASL-interpreter
 *******************************************************************/
 #ifndef __REFINT_H
 #define __REFINT_H
@@ -64,49 +64,49 @@ typedef tplel * tplelptr;
 /************************************************************************/
 
 typedef enum {
-	_nofail, /* neutral code */
-	_vfld,   /* auxiliary view field pointer */
-	_error,  /* strong call failed */
-	_fail,   /* soft call failed*/
-	_failinit, /* initial active term failed */
-	_alt,    /* block level ('{') */
-	_stake,  /* a stake, level mark ('\') */
-	_cut     /* remove stack up to last stake */
-	} sysnels; /* Nel codes in case of spc=0 */
+    _nofail, /* neutral code */
+    _vfld,   /* auxiliary view field pointer */
+    _error,  /* strong call failed */
+    _fail,   /* soft call failed*/
+    _failinit, /* initial active term failed */
+    _alt,    /* block level ('{') */
+    _stake,  /* a stake, level mark ('\') */
+    _cut     /* remove stack up to last stake */
+    } sysnels; /* Nel codes in case of spc=0 */
 
 /*********************************************************************/
 /*                     RASL operators codes                          */
 /*********************************************************************/
 
 typedef enum { NOP,
-	PS,  	PSR,    	/* AB */
-	CSYM, 	CSYMR,  	/* CD */
-	SYMS,	SYMSR,  	/* EF */
-	SYM,	SYMR,		/* GH */
-	OSYM,	OSYMR,		/* IJ */
-	TERM,	TERMR,  	/* KL */
-	OTERM,	OTERMR,		/* MN */
-	EXP,  	EMP,		/* OP */
-	OEXP,	OEXPR,  	/* QR */
-	SETB,	CHKB,		/* ST */
-	PLEN,	PLENS,  	/* UV */
-	LEN,	LENP, 		/* WX */
-	LENS,	LENOS,  	/* YZ */
-	NOP6,	NOP5,	NOP4,	NOP3,	NOP2,	NOP1,
+    PS,      PSR,        /* AB */
+    CSYM,     CSYMR,      /* CD */
+    SYMS,    SYMSR,      /* EF */
+    SYM,    SYMR,        /* GH */
+    OSYM,    OSYMR,        /* IJ */
+    TERM,    TERMR,      /* KL */
+    OTERM,    OTERMR,        /* MN */
+    EXP,      EMP,        /* OP */
+    OEXP,    OEXPR,      /* QR */
+    SETB,    CHKB,        /* ST */
+    PLEN,    PLENS,      /* UV */
+    LEN,    LENP,         /* WX */
+    LENS,    LENOS,      /* YZ */
+    NOP6,    NOP5,    NOP4,    NOP3,    NOP2,    NOP1,
 
-	BL,  	BR,  	BLR,	/* abc */
-	MULT,	MULE,	MUL,	/* def */
-	TPLE, 	TPL,		/* gh */
-	NS,  	TEXT,		/* ij */
-	BLNS,	BRACT,		/* kl */
-	BUILTIN,RETURN,		/* mn */
-	EVAL,	EST,		/* op */
-	STAKE,	CUT,   		/* qr */
-	DO,     UNDO,   	/* st */
-	BRANCH, BRANCHR,	/* uv */
-	ALT,	END,   		/* wx */
-	FAILS,  BLOCK		/* yz */
-	} opcode;
+    BL,      BR,      BLR,    /* abc */
+    MULT,    MULE,    MUL,    /* def */
+    TPLE,     TPL,        /* gh */
+    NS,      TEXT,        /* ij */
+    BLNS,    BRACT,        /* kl */
+    BUILTIN,RETURN,        /* mn */
+    EVAL,    EST,        /* op */
+    STAKE,    CUT,           /* qr */
+    DO,     UNDO,       /* st */
+    BRANCH, BRANCHR,    /* uv */
+    ALT,    END,           /* wx */
+    FAILS,  BLOCK        /* yz */
+    } opcode;
 
 
 
@@ -278,8 +278,8 @@ EXTINT  cvalue    cins;  /* current instruction */
 typedef struct stels {
    union {
       struct { elemptr svb1; elemptr svb2;} sb;
-	  struct stels * sstp;
-	  } u;
+      struct stels * sstp;
+      } u;
    int snel;
    pctype spc;
    } stel;
@@ -294,7 +294,7 @@ typedef stel * stelptr;
 #define  pushst(vb1,vb2,vnel,vpc) \
                      { sp->sb1 = vb1;\
                        sp->sb2 = vb2;\
-					   sp->snel = vnel;\
+                       sp->snel = vnel;\
                        sp->spc =  vpc;}
 #define  popst(vb1,vb2,vnel,vpc) \
                      { vb1 = sp->sb1;\
@@ -302,4 +302,3 @@ typedef stel * stelptr;
                        vnel = sp->snel;\
                        vpc = sp->spc;}
 #endif
-

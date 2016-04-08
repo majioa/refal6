@@ -32,4 +32,4 @@ printf("\nA=S/B "); ALL(i,lA) printf("%04x ",A[i]);
 printf("\nC=S%B "); ALL(i,lS) printf("%04x ",S[i]);
 getch();
 return;
-}
+}

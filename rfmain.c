@@ -20,4 +20,3 @@ main (int argc, char** argv)
    rf_exit(rf_error);  /* rf_termst is herein */
    return(TRUE);
 }
-

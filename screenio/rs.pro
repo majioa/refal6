@@ -30,4 +30,3 @@ rbcont.c  (refcom.h refelem.h rfstor.h class.h refgen.h rfalloc.h contain.h)
 rbkey.c   (refcom.h refelem.h rfstor.h class.h refgen.h channel.h rfkey.h rfkey.c)
 rbrect.c  (refcom.h refelem.h rfstor.h class.h refgen.h rfalloc.h rfzcom.h rfrect.h rfrect.c rect.h rect.c)
 rbslide.c (refcom.h refelem.h rfstor.h class.h refgen.h rfalloc.h rfzcom.h rfslide.h channel.h rfslide.c slide.h slide.c screen.h screen.c attrchr.h attrchr.c)
-

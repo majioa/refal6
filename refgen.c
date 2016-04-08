@@ -63,15 +63,15 @@ void FREEX(int n, elemptr l, elemptr r) /* the result is always TRUE */
   weld(savb,l);
   weld(r,end);                      /* after(b,l,r) */
   while ( b!=end ) {
-	 b=NEXT(b);
-	 if(NOT ISSIMPL(b)) {
-		headptr h = REF00(b);
+     b=NEXT(b);
+     if(NOT ISSIMPL(b)) {
+        headptr h = REF00(b);
         /* Convert AT or VF to () */
-		if(ISBRAC(b) AND TYPE(h)!=HEADBRAC) SETSIM(h,1,HEADBRAC);
+        if(ISBRAC(b) AND TYPE(h)!=HEADBRAC) SETSIM(h,1,HEADBRAC);
         /* make element simple */
-		headptrfree(h);
+        headptrfree(h);
         SETSIM(b,n,TYPESIMPL)
-	 }  }
+     }  }
   b=savb;
   };
 
@@ -87,13 +87,13 @@ void AFTERXS( elemptr px, elemptr pl, elemptr pr)
   weld(pr,py);
   /* Make brackets of all AT's and VF's */
   for(py=pl;;py=NEXT(py)) {
-	headptr h;
-	h=REF(py);
-	if(TYPE(py) !=TYPEBRAC OR STYPE(h)==HEADBRAC)
-	   fprintf(stdtrc,"AFTERXS: %u\n",h);
-	SETSIM(h,1,HEADBRAC);
-	if(py==pr) break;
-	}
+    headptr h;
+    h=REF(py);
+    if(TYPE(py) !=TYPEBRAC OR STYPE(h)==HEADBRAC)
+       fprintf(stdtrc,"AFTERXS: %u\n",h);
+    SETSIM(h,1,HEADBRAC);
+    if(py==pr) break;
+    }
 }
 
 /* Insert element p after element px */
@@ -189,11 +189,11 @@ LOGICAL MOVB() { movb; return(TRUE); }
 
 /* Convert any box or object to empty object of type typ */
 LOGICAL rf_get_empty(headptr h, int typ)
-{	if(NOT ISOBJ(h)) return(FALSE);
-	DONE(h);
-	TYPE(h) = typ;
-	NEW(h);
-	return(TRUE);
+{    if(NOT ISOBJ(h)) return(FALSE);
+    DONE(h);
+    TYPE(h) = typ;
+    NEW(h);
+    return(TRUE);
 }
 
 /* Compare two objects for equality */
@@ -212,4 +212,3 @@ LOGICAL rf_eqobj(headptr h1, headptr h2) /* -> TRUE/FALSE */
   return(FALSE);
   }
 
-

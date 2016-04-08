@@ -137,9 +137,9 @@ enum LOGICAL { FALSE, TRUE, FAIL };
 #define  TYPECHAR    (TYPESIMPL+64)
 #define  TYPEVIR     (TYPESIMPL+128)
 enum mode { EMPTY, CHAR, FSTORE, EXPR,
-			CHAIN, VECTOR, FUNC, STRING, MASK, TABLE,
-			REAL, FILEIO
-			};
+            CHAIN, VECTOR, FUNC, STRING, MASK, TABLE,
+            REAL, FILEIO
+            };
 #define  HD(T,M)     ((T<<2)+M)
 #define  MODE(T)     ((T>>2) & MODESEL)
 #define  CON         2
@@ -216,13 +216,13 @@ enum mode { EMPTY, CHAR, FSTORE, EXPR,
 #define  MAKESIMPL(h)   SETSIM(h,1,TYPESIMPL)
 
 #define  EQSYM(p,q)   (EQINF(p,q) )
-/*	     OR (ISLVAL(p) AND ISLVAL(q) AND rf_eqlong(p,q))) */
+/*         OR (ISLVAL(p) AND ISLVAL(q) AND rf_eqlong(p,q))) */
 #define  EQSYMC(p,c)   (EQDATC(p,c) )
-/*	     OR (ISLVAL(p) AND ISLVAL(q) AND rf_eqlongc(p,c))) */
+/*         OR (ISLVAL(p) AND ISLVAL(q) AND rf_eqlongc(p,c))) */
 #define  EQTERM(p,q)  (EQINF(p,q) \
-   	     OR (ISBRAC(p) AND ISBRAC(q) AND rf_eqobj(REF(p),REF(q))) )
+            OR (ISBRAC(p) AND ISBRAC(q) AND rf_eqobj(REF(p),REF(q))) )
 #define  EQTERMC(p,c) (EQDATC(p,c) \
-   	     OR (ISBRAC(p) AND IS_BRAC(CTYPE(c)) AND rf_eqobj(REF(p),CREF(c))) )
+            OR (ISBRAC(p) AND IS_BRAC(CTYPE(c)) AND rf_eqobj(REF(p),CREF(c))) )
 #define  GETHEAD(p,h,t) (ISREF(p) AND (TYPE(h=REF00(p))==t))
 #define  GETEMPTY(p,h)  (ISREF(p) AND rf_getempty(h=REF00(p)))
 #define  GETNUMB(p,n)   (rf_getnumb(p,&(n)))
@@ -420,4 +420,3 @@ typedef float real;
 typedef double real;
 #endif
 #endif
-

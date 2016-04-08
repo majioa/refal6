@@ -17,8 +17,8 @@
 
 /* This module implements functions to allocate dynamic memory segments
 It's main features are:
-	The memory segment address (type adr) can be stored in a headder
-	(field NEXT).
+    The memory segment address (type adr) can be stored in a headder
+    (field NEXT).
     Each (unlocked) memory segment is connected with it's own headder.
     The application accesses the segment via the headder.
     The segment when accessed is locked to prevent moving.
@@ -28,12 +28,12 @@ It's main features are:
 The implementation features:
     All segments have 16-byte boundary alignment.
     Each segment has a title which is a pair:
-	<headptr Head, slen Size>.
+    <headptr Head, slen Size>.
     There ara four kinds of segments:
-	<NOHEAD,0>    - fixed null segment (this is out of heap),
-	<FREESEG, hlen HSize> - free segment of size HSize (in paragraphs).
-	<NOHEAD, seglen Length> - used LOCKED segment,
-	<Head, seglen Length> - used movable segment (Length is in bytes).
+    <NOHEAD,0>    - fixed null segment (this is out of heap),
+    <FREESEG, hlen HSize> - free segment of size HSize (in paragraphs).
+    <NOHEAD, seglen Length> - used LOCKED segment,
+    <Head, seglen Length> - used movable segment (Length is in bytes).
     Parameter Length refers to user information which does not include
     title information.
     Number of paragraphs, occupied by a segment can be
@@ -134,10 +134,10 @@ typedef unsigned hlen; /* private segment (hole) size in paragraphs */
 #define FREESEG  (headptr) (((char*) NULL)-1)
 #endif
 
-typedef	struct {
-	hadr next;   /* next hole or NULL */
-	hlen size;   /* size of the hole in paragraphs */
-	} hole;
+typedef    struct {
+    hadr next;   /* next hole or NULL */
+    hlen size;   /* size of the hole in paragraphs */
+    } hole;
 
 /* Macro functions of inner segment , which is the same as hole */
 #define HSHEAD(s) SEGHEAD(ADR(s))
@@ -183,14 +183,14 @@ LOGICAL heapgrown; /* It is set when heap grows up */
 
 void rf_prholes(FILE* f) { hadr cur; rf_heap_stat(f);
     for (cur=heapfree; cur != NULL ; cur = HNEXT(cur)) {
-		fprintf(f,"   HOLE: %p ", HOLE(cur));
-		fprintf(f," LENGTH %ld\n", (long) (HSIZE(cur)));
+        fprintf(f,"   HOLE: %p ", HOLE(cur));
+        fprintf(f," LENGTH %ld\n", (long) (HSIZE(cur)));
 }       }
 
 void prfree(int k)
  {  hadr *afree;
-  	fprintf(stdtrc,"\n   free(adr,len): ");
-	for (afree = &heapfree; k-- AND *afree != NULL; afree = &(HNEXT(*afree)))
+      fprintf(stdtrc,"\n   free(adr,len): ");
+    for (afree = &heapfree; k-- AND *afree != NULL; afree = &(HNEXT(*afree)))
         fprintf(stdtrc,"(%x,%u) ",*afree, HSIZE(*afree));
   }
 
@@ -210,7 +210,7 @@ LOGICAL allpurfun(hlen s)
   SETCURS(CURSHIGH);
   if(strchr(flags,'s')) {
     fprintf(stdtrc,"PURGE MEMORY WHILE ALLOCATING %u ELEMENTS\n",s);
-	rf_prholes(stdtrc); /* print out list of holes */
+    rf_prholes(stdtrc); /* print out list of holes */
     }
   ALL(i,m_purfun) if((res = res | (*(purfun[i]))())!=0) break;
   SETCURS(CURSNORM);
@@ -219,17 +219,17 @@ LOGICAL allpurfun(hlen s)
 
 static LOGICAL squeese(); /* Lowest purge function */
 static LOGICAL freemem() {
-	elemptr savb;
-	long N;
-	LOGICAL res;
-	savb=b;	testmem(&N); b=savb;
+    elemptr savb;
+    long N;
+    LOGICAL res;
+    savb=b;    testmem(&N); b=savb;
     if(strchr(flags,'s')) {          /* print out list of holes */
        fprintf(stdtrc,"FREEMEM:\n");
-	   rf_prholes(stdtrc);
+       rf_prholes(stdtrc);
        fprintf(stdtrc,"END FREEMEM:\n");
-	   }
-	res=(heapfreed!=0);
-	return(res);
+       }
+    res=(heapfreed!=0);
+    return(res);
     };
 
 
@@ -245,48 +245,48 @@ anexthole= &firsthole;
 firsthole = NOHOLE;
 
 for (cur = heapstart ; cur!=heapend; cur = HADR_PLUS_LEN(cur,len)) {
-	if (*anexthole == NULL) {
-		/* There is no hole below the current segment */
-		if (cur == heapfree) {
-			/* make new hole from the old one */
-			len = HSIZE(cur);
-			heapfree = HNEXT(cur);
-			}
-		else if(ISFREE(cur)) {
-			/* make new current hole from the free segment */
-			len = FSLEN(cur);
-			res = TRUE;
-			}
-		else {
-			len = HSLEN(cur);
-			if (HLOCKED(cur)) {
-				continue;
-				}
-			/* find a hole to move segment cur into */
-			afree = &firsthole;
-			while (afree != anexthole) {
-				if (HSIZE(*afree) >= len) break;
-				afree = &HNEXT(*afree);
-				}
-			if(afree == anexthole) /* no hole */ continue;
-			if(HSIZE(a=*afree) == len) {
-				if (anexthole == &HNEXT(a)) anexthole = afree;
-				else *afree = HNEXT(a);
-				}
-			else {
-				*afree = HADR_PLUS_LEN(*afree,len);
-				if (anexthole == &HNEXT(a)) anexthole = &HNEXT(*afree);
-				else HNEXT(*afree)=HNEXT(a);
-				HSIZE(*afree)=HSIZE(a)-len;
-				}
-			MOVSEGH(cur,a,len);
-			res = TRUE;
-			}
-		/* make new hole from cur */
-		*anexthole = cur;
-		HNEXT(cur) = NOHOLE;
-		HSIZE(cur) = len;
-		}
+    if (*anexthole == NULL) {
+        /* There is no hole below the current segment */
+        if (cur == heapfree) {
+            /* make new hole from the old one */
+            len = HSIZE(cur);
+            heapfree = HNEXT(cur);
+            }
+        else if(ISFREE(cur)) {
+            /* make new current hole from the free segment */
+            len = FSLEN(cur);
+            res = TRUE;
+            }
+        else {
+            len = HSLEN(cur);
+            if (HLOCKED(cur)) {
+                continue;
+                }
+            /* find a hole to move segment cur into */
+            afree = &firsthole;
+            while (afree != anexthole) {
+                if (HSIZE(*afree) >= len) break;
+                afree = &HNEXT(*afree);
+                }
+            if(afree == anexthole) /* no hole */ continue;
+            if(HSIZE(a=*afree) == len) {
+                if (anexthole == &HNEXT(a)) anexthole = afree;
+                else *afree = HNEXT(a);
+                }
+            else {
+                *afree = HADR_PLUS_LEN(*afree,len);
+                if (anexthole == &HNEXT(a)) anexthole = &HNEXT(*afree);
+                else HNEXT(*afree)=HNEXT(a);
+                HSIZE(*afree)=HSIZE(a)-len;
+                }
+            MOVSEGH(cur,a,len);
+            res = TRUE;
+            }
+        /* make new hole from cur */
+        *anexthole = cur;
+        HNEXT(cur) = NOHOLE;
+        HSIZE(cur) = len;
+        }
 
 
 
@@ -294,57 +294,57 @@ for (cur = heapstart ; cur!=heapend; cur = HADR_PLUS_LEN(cur,len)) {
 
 
 
-	else { /* *anexthole != NULL, HNEXT(*anexthole) = NULL */
-		 /* There is a hole (*anexthole) below the current segment */
-		if (cur == heapfree) {
-			len = HSIZE(cur);
-			/* append the old hole to the current one */
-			HSIZE(*anexthole) += len;
-			heapfree = HNEXT(heapfree);
-			}
-		else if(ISFREE(cur)) {
-			/* append free segment to the current hole */
-			len = FSLEN(cur);
-			HSIZE(*anexthole) += len;
-			}
-		else {
-			len = HSLEN(cur);
-			if (HLOCKED(cur)) { anexthole = &HNEXT(*anexthole); continue; }
-			/* if(NOT HLOCKED(cur)) */
-			HSIZE(*anexthole) += len;
-			/* find a hole to move segment cur into */
-			afree = &firsthole;
-			while(HSIZE(*afree) < len) {
-				if (afree==anexthole) { fprintf(stdtrc,"SQUEESE: Error, no hole\n"); rf_exit(30); }
-				afree = &HNEXT(*afree);
-				}
-			if(HSIZE(a = *afree) == len) { /* hence a is not *anexthole */
-				if (anexthole == &HNEXT(a)) anexthole = afree;
-				*afree = HNEXT(a);
-				MOVSEGH(cur,a,len);
-				}
-			else { /* a may be the *anexthole */
-				hadr savnext;
-				hlen savlen;
-				*afree = HADR_PLUS_LEN(*afree,len);
-				if (anexthole == &HNEXT(a)) anexthole = &HNEXT(*afree);
-				savnext = HNEXT(a);
-				savlen = HSIZE(a) - len;
-				MOVSEGH(cur,a,len);
-				HNEXT(*afree)=savnext;
-				HSIZE(*afree)=savlen;
-			}	}
-		res = TRUE;
-	}	}
+    else { /* *anexthole != NULL, HNEXT(*anexthole) = NULL */
+         /* There is a hole (*anexthole) below the current segment */
+        if (cur == heapfree) {
+            len = HSIZE(cur);
+            /* append the old hole to the current one */
+            HSIZE(*anexthole) += len;
+            heapfree = HNEXT(heapfree);
+            }
+        else if(ISFREE(cur)) {
+            /* append free segment to the current hole */
+            len = FSLEN(cur);
+            HSIZE(*anexthole) += len;
+            }
+        else {
+            len = HSLEN(cur);
+            if (HLOCKED(cur)) { anexthole = &HNEXT(*anexthole); continue; }
+            /* if(NOT HLOCKED(cur)) */
+            HSIZE(*anexthole) += len;
+            /* find a hole to move segment cur into */
+            afree = &firsthole;
+            while(HSIZE(*afree) < len) {
+                if (afree==anexthole) { fprintf(stdtrc,"SQUEESE: Error, no hole\n"); rf_exit(30); }
+                afree = &HNEXT(*afree);
+                }
+            if(HSIZE(a = *afree) == len) { /* hence a is not *anexthole */
+                if (anexthole == &HNEXT(a)) anexthole = afree;
+                *afree = HNEXT(a);
+                MOVSEGH(cur,a,len);
+                }
+            else { /* a may be the *anexthole */
+                hadr savnext;
+                hlen savlen;
+                *afree = HADR_PLUS_LEN(*afree,len);
+                if (anexthole == &HNEXT(a)) anexthole = &HNEXT(*afree);
+                savnext = HNEXT(a);
+                savlen = HSIZE(a) - len;
+                MOVSEGH(cur,a,len);
+                HNEXT(*afree)=savnext;
+                HSIZE(*afree)=savlen;
+            }    }
+        res = TRUE;
+    }    }
 heapfree = firsthole;
 heapleft = 0;
 for (cur=heapfree; cur != NULL ; cur = HNEXT(cur)) {
-	heapleft += HSIZE(cur);
-	heapfreed=0;
-	}
+    heapleft += HSIZE(cur);
+    heapfreed=0;
+    }
 if(strchr(flags,'s')) {          /* print out list of holes */
      fprintf(stdtrc,"SQUEESE:\n");
-	 rf_prholes(stdtrc);
+     rf_prholes(stdtrc);
      fprintf(stdtrc,"END SQUEESE:\n");
      }
 if(strchr(flags,'z')) prm=1;
@@ -357,18 +357,18 @@ return(res);
 static hadr rf_halloc(hlen s)
 {  hadr a, *afree;
 S: for (afree = &heapfree; *afree != NULL; afree = &(HNEXT(*afree)) )
-		if (HSIZE(*afree) >= s) break;
+        if (HSIZE(*afree) >= s) break;
    if (*afree==NULL) {
-		      	if (NOT allpurfun(s)) { rf_error = ERRSTOR; return(0); }
-			    goto S;
-			    }
+                  if (NOT allpurfun(s)) { rf_error = ERRSTOR; return(0); }
+                goto S;
+                }
    a = *afree;
    if(HSIZE(a) == s) { *afree = HNEXT(a); }
    else {
-	  *afree=HADR_PLUS_LEN(*afree,s);
-	  HNEXT(*afree)=HNEXT(a);
-	  HSIZE(*afree)=HSIZE(a)-s;
-	  }
+      *afree=HADR_PLUS_LEN(*afree,s);
+      HNEXT(*afree)=HNEXT(a);
+      HSIZE(*afree)=HSIZE(a)-s;
+      }
    HSHEAD(a) = FREESEG; /*  HNEXT(a) = FREESEG; */
    FSLEN(a) = s;        /*  HSIZE(a) = s; */
    heapleft-=s;
@@ -393,7 +393,7 @@ void* rmalloc(seglen size)
   SEGHEAD(ADR(a))=NOHEAD;
   SEGLEN(ADR(a))=size;
     if(strchr(flags,'s'))
-	fprintf(stdtrc,"Rmalloc: %u bytes in %p\n",size,SEGINF(ADR(a)));
+    fprintf(stdtrc,"Rmalloc: %u bytes in %p\n",size,SEGINF(ADR(a)));
   return(SEGINF(ADR(a)));
   };
 
@@ -426,7 +426,7 @@ void rf_mem_init()
   start = (hadr) HEAPBASE(a);
   size = (hlen) (tot/SIZEOFPAR);
   if(strchr(flags,'s')) {
-	fprintf(stdtrc,"Heap size is %ld, ",((long)size)*SIZEOFPAR);
+    fprintf(stdtrc,"Heap size is %ld, ",((long)size)*SIZEOFPAR);
     fprintf(stdtrc,"heap start is %p\n", HOLE(start));
     }
   anull = ADR(start);
@@ -447,19 +447,19 @@ adr rf_realloc(adr a, seglen size)
 { hlen s,l;
   hadr aa;
   if (size==0)
-	{ if (a != anull) rf_hfree(HADR(a),HLEN(SEGLEN(a))); return(anull); }
+    { if (a != anull) rf_hfree(HADR(a),HLEN(SEGLEN(a))); return(anull); }
   s = HLEN(size);
   if (a==anull)  aa = rf_halloc(s);
   else {
-	if (SEGHEAD(a)!=NULL)
-	  fprintf(stdtrc,"Rf_realloc: unlocked segment %p\n",HOLE(a));
-	l = HLEN(SEGLEN(a));
-	aa=HADR(a);
-	if      (s<l) rf_hfree(HADR_PLUS_LEN(aa,s),l-s);
-	else if (s>l) {
-	  aa = rf_halloc(s); /* segment a must be LOCKED */
-	  if (aa!=0) { MOVSEG(HADR(a),aa,l); rf_hfree(HADR(a),l); }
-	} }
+    if (SEGHEAD(a)!=NULL)
+      fprintf(stdtrc,"Rf_realloc: unlocked segment %p\n",HOLE(a));
+    l = HLEN(SEGLEN(a));
+    aa=HADR(a);
+    if      (s<l) rf_hfree(HADR_PLUS_LEN(aa,s),l-s);
+    else if (s>l) {
+      aa = rf_halloc(s); /* segment a must be LOCKED */
+      if (aa!=0) { MOVSEG(HADR(a),aa,l); rf_hfree(HADR(a),l); }
+    } }
   if(aa==0) return(NOADR);
   SEGHEAD(ADR(aa)) = NOHEAD;  /* segment is locked */
   SEGLEN(ADR(aa))=size;
@@ -468,9 +468,8 @@ adr rf_realloc(adr a, seglen size)
 
 void rf_heap_stat(FILE * f)
 { fprintf(f,"HEAP bytes: used %lu, freed %lu, left %lu, maxused - %lu\n",
-				   (long)heapused*SIZEOFPAR,
-				   (long)heapfreed*SIZEOFPAR,
-				   (long)heapleft*SIZEOFPAR,
-				   (long)heapmaxused*SIZEOFPAR);
+                   (long)heapused*SIZEOFPAR,
+                   (long)heapfreed*SIZEOFPAR,
+                   (long)heapleft*SIZEOFPAR,
+                   (long)heapmaxused*SIZEOFPAR);
 };
-

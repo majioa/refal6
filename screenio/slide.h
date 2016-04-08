@@ -68,4 +68,3 @@ int     slide_axy      (slide * sptr, attrptr aptr, int * x, int * y);
 
 #endif  /* __SLIDE_H */
                           /* End of Slide.h */
-

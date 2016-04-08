@@ -33,7 +33,7 @@ static LOGICAL igetn (addr thi, tail * at, cvalue * ac)
  seglen t,ln;
  ln = MBLEN(h);
  if((t=(seglen)(*at))>=ln)
-	 { *ac=CMKSIM(CHARVIR,TYPECHAR); return(FALSE); }
+     { *ac=CMKSIM(CHARVIR,TYPECHAR); return(FALSE); }
  (*at)++;
  *ac=CMKSIM('0'+GetBit(MFIRST(h),t),TYPECHAR);
  return(TRUE);
@@ -104,20 +104,20 @@ static LOGICAL ishift  (addr thi, tail * at, int n)
  ln1m= BitsShort*l1;
  n1=ln-ln1;
  if(n1>0) /* length decreeses */
-	for(i=t; i!=ln1m; i++) {
+    for(i=t; i!=ln1m; i++) {
        i1=i+n1;
        bit=(i1<ln? GetBit(A,i1) : bsign) ;
        PutBit(A,i,bit);
        };
  if(l1!=l) { ECALL(REALLOC(AD(h),MSIZE(l1))!=NOADR); A=MFIRST(h); }
  if(n1<0)  /* length increeses */ {
-	for(i=ln1m; i>t; i--) {
-	   seglen j=i-1;
-	   i1=j+n1;
+    for(i=ln1m; i>t; i--) {
+       seglen j=i-1;
+       i1=j+n1;
        bit=(i1<ln? (i1<t? 0: GetBit(A,i1)) : bsign) ;
-	   PutBit(A,j,bit);
+       PutBit(A,j,bit);
        }
-	}
+    }
  return(TRUE);
  }
 
@@ -125,24 +125,24 @@ ifunc p_mask(headptr h, int m, addr * aa)
 {
    *aa = PTOFAR(h);
    switch(m) {
-	 case _SETPOS: return((ifunc)isetpos);
-	 case _GETN:   return((ifunc)igetn);
-	 case _REPN:   return((ifunc)irepn);
-	 case _GETLEN: return((ifunc)igetlen);
-	 case _SETLEN: return((ifunc)isetlen);
-	 case _SHIFT:  return((ifunc)ishift);
-	 case _END:	{  /* Normalize number */
+     case _SETPOS: return((ifunc)isetpos);
+     case _GETN:   return((ifunc)igetn);
+     case _REPN:   return((ifunc)irepn);
+     case _GETLEN: return((ifunc)igetlen);
+     case _SETLEN: return((ifunc)isetlen);
+     case _SHIFT:  return((ifunc)ishift);
+     case _END:    {  /* Normalize number */
                   MPOS A = MFIRST(h);
                   seglen l = MLEN(h), lA=l;
-		  ra_norm(A,&lA);
-		  if(lA!=l) REALLOC(AD(h),MSIZE(lA)); /* here memory error can't occur */
-		  }
-	 default: return(p_allocont(h,m,aa));
-}	 }
+          ra_norm(A,&lA);
+          if(lA!=l) REALLOC(AD(h),MSIZE(lA)); /* here memory error can't occur */
+          }
+     default: return(p_allocont(h,m,aa));
+}     }
 
 ifunc p_real(headptr h, int m, addr * aa)
 {
    switch(m) {
-	 case _NEW: { real z=0.0; real2head(z,h); }
-	 default: return(p_object(h,m,aa));
-}	 }
+     case _NEW: { real z=0.0; real2head(z,h); }
+     default: return(p_object(h,m,aa));
+}     }

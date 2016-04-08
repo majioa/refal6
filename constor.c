@@ -33,9 +33,9 @@ static int iputc(int c, addr thi)
 ifunc p_store(headptr h, int m, addr * aa)
 {
    switch(m) {
-	 case _SETPOS: return((ifunc)isetpos);
-	 case _SETLEN: return((ifunc)isetpos);
-	 case _REPN:   return((ifunc)irepnfree);
-	 case _PUTC:   return((ifunc)iputc);
-	 default: return(p_object(h,m,aa));
-}	 }
+     case _SETPOS: return((ifunc)isetpos);
+     case _SETLEN: return((ifunc)isetpos);
+     case _REPN:   return((ifunc)irepnfree);
+     case _PUTC:   return((ifunc)iputc);
+     default: return(p_object(h,m,aa));
+}     }

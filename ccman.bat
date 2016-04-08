@@ -4,4 +4,3 @@ call cc video.c   -v -y
 copy *.obj ..\obj-2\*.*
 
 
-

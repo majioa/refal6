@@ -42,19 +42,19 @@ void rf_mem_init();
 /* typedef unsigned seglen; (see rfstor.h) */
 typedef union {
    struct {
-	  headptr head;   /* NULL when segment is LOCKED */
-	  seglen  slen;   /* size of user information in bytes */
+      headptr head;   /* NULL when segment is LOCKED */
+      seglen  slen;   /* size of user information in bytes */
       } tit;
    headptr zzz[2];
    } headblk;
 
 typedef union {
-	uchar whole[16];
-	struct {
+    uchar whole[16];
+    struct {
         headblk hd;
-		uchar info[8];  /* start of user information */
-		} segm;
-	} block;
+        uchar info[8];  /* start of user information */
+        } segm;
+    } block;
 
 
 

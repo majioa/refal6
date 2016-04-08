@@ -11,7 +11,7 @@
 /* Compare strings */
 static int wcmps (uchar* s1, int l1, uchar* s2, int l2)      /* wcmps */
 {  int d,k;
-#define LEXICOGRAPHICALLY 
+#define LEXICOGRAPHICALLY
 #ifdef LEXICOGRAPHICALLY
 /* Pure lexicographical order */
    for ( ; l1!=0 AND l2!=0 ; l1--, l2--, s1++, s2++ )
@@ -25,7 +25,7 @@ static int wcmps (uchar* s1, int l1, uchar* s2, int l2)      /* wcmps */
 #endif
 }
 
-int ra_cmpl(headptr h1, headptr h2)  /* ·‡†¢≠•≠®• §¢„Â §´®≠≠ÎÂ Á®·•´ */
+int ra_cmpl(headptr h1, headptr h2)  /* —Å—Ä–∞–≤–Ω–µ–Ω–∏–µ –¥–≤—É—Ö –¥–ª–∏–Ω–Ω—ã—Ö —á–∏—Å–µ–ª */
 {   int d,i;
     seglen l1,l2;
     ushort *a1, *a2;
@@ -43,7 +43,7 @@ int ra_cmpl(headptr h1, headptr h2)  /* ·‡†¢≠•≠®• §¢„Â §´®≠≠ÎÂ Á®·•´ */
     return d;
     };
 
-int ra_sign(headptr h) /* ß≠†™ §´®≠≠Æ£Æ Á®·´†: 0 ®´® -1 */
+int ra_sign(headptr h) /* –∑–Ω–∞–∫ –¥–ª–∏–Ω–Ω–æ–≥–æ —á–∏—Å–ª–∞: 0 –∏–ª–∏ -1 */
 {  int d;
    START(h);
       d = (MFIRST(h))[MLEN(h)-1];
@@ -65,51 +65,51 @@ int rf_cmp (elemptr p1, elemptr q1, elemptr p2, elemptr q2)
   int res;
   res = 0;
   if (p2 == NULL)
-	if (p1 == NULL) return (0);
-	else return(1);
+    if (p1 == NULL) return (0);
+    else return(1);
   else
     if (p1 == NULL) return (-1);
     else {
-	  savspe = spe;
-	  for (;; p1 = NEXT(p1), p2 = NEXT(p2)) {
-		t1 = TYPE(p1);
-		t2 = TYPE(p2);
-		h1 = REF00(p1);
-		h2 = REF00(p2);
+      savspe = spe;
+      for (;; p1 = NEXT(p1), p2 = NEXT(p2)) {
+        t1 = TYPE(p1);
+        t2 = TYPE(p2);
+        h1 = REF00(p1);
+        h2 = REF00(p2);
 
-		if (IS_CHAR(t1)) {
-		  if (NOT IS_CHAR(t2)) res = -1;
-		  else if (VAL(p1) != VAL(p2)) res = VAL(p1) - VAL(p2);
+        if (IS_CHAR(t1)) {
+          if (NOT IS_CHAR(t2)) res = -1;
+          else if (VAL(p1) != VAL(p2)) res = VAL(p1) - VAL(p2);
           }
-		else if (IS_CHAR(t2)) res = 1;
+        else if (IS_CHAR(t2)) res = 1;
 
     else if (ISWORD(p1)) {
-		  if (NOT ISWORD(p2)) res = -1;
-		  else {
-			 uchar *s1, *s2;
-			 int l1,l2;
-			 cvalue c1,c2;
-			 if (IS_REF(t1)) { START(h1);
-				s1 = WDFIRST(h1);
-				l1 = WDLEN(h1);
-				}
-			 else {	c1 = DATA(p1);
-				s1 = SWDBODY(c1);
-				l1 = SWD_LEN(CTYPE(c1));
-				};
-			 if (IS_REF(t2)) { START(h2);
-				s2 = WDFIRST(h2);
-				l2 = WDLEN(h2);
-				}
-			 else { c2 = DATA(p2);
-				s2 = SWDBODY(c2);
-				l2 = SWD_LEN(CTYPE(c2));
-				};
-			 res = wcmps(s1,l1,s2,l2);
-			 if(IS_REF(t1)) END(h1);
-			 if(IS_REF(t2)) END(h2);
-		  }	 }
-		else if (ISWORD(p2)) res = 1;
+          if (NOT ISWORD(p2)) res = -1;
+          else {
+             uchar *s1, *s2;
+             int l1,l2;
+             cvalue c1,c2;
+             if (IS_REF(t1)) { START(h1);
+                s1 = WDFIRST(h1);
+                l1 = WDLEN(h1);
+                }
+             else {    c1 = DATA(p1);
+                s1 = SWDBODY(c1);
+                l1 = SWD_LEN(CTYPE(c1));
+                };
+             if (IS_REF(t2)) { START(h2);
+                s2 = WDFIRST(h2);
+                l2 = WDLEN(h2);
+                }
+             else { c2 = DATA(p2);
+                s2 = SWDBODY(c2);
+                l2 = SWD_LEN(CTYPE(c2));
+                };
+             res = wcmps(s1,l1,s2,l2);
+             if(IS_REF(t1)) END(h1);
+             if(IS_REF(t2)) END(h2);
+          }     }
+        else if (ISWORD(p2)) res = 1;
 
 
 
@@ -117,19 +117,19 @@ int rf_cmp (elemptr p1, elemptr q1, elemptr p2, elemptr q2)
 
 
 
-		else if (ISNUMB(p1)) {
-		  if (NOT ISNUMB(p2)) res = -1;
-		  else if (IS_SNUMB(t1)) {
-			if (IS_SNUMB(t2)) {
-			   if (VAL(p1) != VAL(p2)) res =
-					( (int) VAL(p1) < (int) VAL(p2) ? -1 : 1 );
+        else if (ISNUMB(p1)) {
+          if (NOT ISNUMB(p2)) res = -1;
+          else if (IS_SNUMB(t1)) {
+            if (IS_SNUMB(t2)) {
+               if (VAL(p1) != VAL(p2)) res =
+                    ( (int) VAL(p1) < (int) VAL(p2) ? -1 : 1 );
                }
-			else res = (ra_sign(h2) == 0 ? -1 : 1);
-			}
-		  else if (ISLNUMB(p2)) res = ra_cmpl(h1,h2);
-		  else res = (ra_sign(h1) == 0 ? 1 : -1);
-		  }
-		else if (ISNUMB(p2)) res = 1;
+            else res = (ra_sign(h2) == 0 ? -1 : 1);
+            }
+          else if (ISLNUMB(p2)) res = ra_cmpl(h1,h2);
+          else res = (ra_sign(h1) == 0 ? 1 : -1);
+          }
+        else if (ISNUMB(p2)) res = 1;
 
 #define NormReal(p,r) {                             \
       headptr h; float f; cvalue c;                 \
@@ -139,49 +139,49 @@ int rf_cmp (elemptr p1, elemptr q1, elemptr p2, elemptr q2)
 
 #define ISANYREAL(p) (ISREAL(p) OR ISR(p,HD(REAL,CON)))
 
-		else if (ISANYREAL(p1)) {
-		  if (NOT ISANYREAL(p2)) res = -1;
-		  else {
+        else if (ISANYREAL(p1)) {
+          if (NOT ISANYREAL(p2)) res = -1;
+          else {
              real r1,r2;
              NormReal(p1,r1);
              NormReal(p2,r2);
              if(r1!=r2) res = (r1<r2? -1 : 1);
           }  }
-		else if (ISANYREAL(p2)) res = 1;
+        else if (ISANYREAL(p2)) res = 1;
 
-		else if (ISOBJ(h1)) {
-		  if (NOT ISOBJ(h2)) res = -1; else res = h1-h2;
-		  }
-		else if (ISOBJ(h2)) res = 1;
+        else if (ISOBJ(h1)) {
+          if (NOT ISOBJ(h2)) res = -1; else res = h1-h2;
+          }
+        else if (ISOBJ(h2)) res = 1;
 
-		else if (IS_BRAC(t1)) {
-		  if (NOT IS_BRAC(t2)) res = 1;
-		  else {
-			pushe(p1,q1); pushe(p2,q2);
-			if(spe > spemax) rf_err(ERCSTKO);
-			p1 = h1;
-			p2 = h2;
-			q1 = PREV(p1);
-			q2 = PREV(p2);
-		  } }
-		else rf_err(ERCDATA);
+        else if (IS_BRAC(t1)) {
+          if (NOT IS_BRAC(t2)) res = 1;
+          else {
+            pushe(p1,q1); pushe(p2,q2);
+            if(spe > spemax) rf_err(ERCSTKO);
+            p1 = h1;
+            p2 = h2;
+            q1 = PREV(p1);
+            q2 = PREV(p2);
+          } }
+        else rf_err(ERCDATA);
 
         if (res != 0) {  spe = savspe;  return(res); }
-		while (p1 == q1) {
-		  if (p2 != q2) { spe = savspe;	return(-1); }
-		  if (spe == savspe) return (0);
-		  pope(p2,q2); pope(p1,q1);
-		  }
-		if (p2 == q2) {  spe = savspe; return (1); }
-	  } }
+        while (p1 == q1) {
+          if (p2 != q2) { spe = savspe;    return(-1); }
+          if (spe == savspe) return (0);
+          pope(p2,q2); pope(p1,q1);
+          }
+        if (p2 == q2) {  spe = savspe; return (1); }
+      } }
 }
 
 
 /* make box head given a name */
 LOGICAL rf_mk_hboxn (cvalue name, headptr * ah)        /* rf_mk_hboxn */
-		 /* name is ghost, result *ah is actual */
+         /* name is ghost, result *ah is actual */
 {  if(NOT rf_mk_hbox(ah)) return(FALSE);
-	 if(name!=NOCVALUE) rf_tab_link(sysid,name,CMKREF(*ah,TYPEREF));
+     if(name!=NOCVALUE) rf_tab_link(sysid,name,CMKREF(*ah,TYPEREF));
    return(TRUE);
    };
 
@@ -200,8 +200,8 @@ LOGICAL rf_mk_hbox(headptr * ah)                   /* rf_mk_hbox */
 /* make new object headder */
 LOGICAL                                                rf_mk_empty
    (headptr * ah,     /* result *ah is actual unless result is FALSE */
-	int typ           /* type typ must accept message _NEW */
-	)
+    int typ           /* type typ must accept message _NEW */
+    )
 {  headptr hb;
    movbx(b,hb);
    weld(b,NEXT(hb));
@@ -224,9 +224,9 @@ void rf_exitmsg(int n, char * s)                 /* rf_exitmsg */
 /* Print out statistics on memory usage */
 
 void rf_out_stat(FILE* f) {
-	rf_mem_stat (f);
-	rf_heap_stat(f);
-	}
+    rf_mem_stat (f);
+    rf_heap_stat(f);
+    }
 
 
 
@@ -255,7 +255,7 @@ LOGICAL rf_mk_numb(ushort* an, seglen l, cvalue * ac, LOGICAL simplify)
    headptr h;
    ra_norm(an,&l);
    if (simplify AND (l==1 OR l==2 AND (short)(an[0]^an[1])>=0))
-		{ *ac = CMKSIM(an[0],TYPESNUMB); return(TRUE);}
+        { *ac = CMKSIM(an[0],TYPESNUMB); return(TRUE);}
    ECALL(rf_mk_hnumb(an,l,&h));
    END(h);
    *ac = CMKREF(h,TYPELVAL);

@@ -13,7 +13,7 @@
 ( STDIN     (R Channel) )
 ( STDOUT    (R Channel) )
 ( STDERR    (R Channel) )
-( SYSTABLE  (R Table) ) 
+( SYSTABLE  (R Table) )
 ( SYSID     (R Table) )
 ( FREE             (C "rb_close_chan"  ) )
 ( FREE  ('*e1') () (C "rb_close_chan"  (E('*e1')) ('*e2') ) )

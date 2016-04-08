@@ -15,13 +15,13 @@ ifunc p_fileio (headptr h, int code, addr * aa)
    HDGETFAR(h,*aa);
    if(*aa==NULL) return(p_object(h,code,aa));
    switch (code) {
-	 case _PUTC: return((ifunc)fputc);
-	 case _GETC: return((ifunc)fgetc);
-	 case _UNGETC: return((ifunc)ungetc);
-	 case _FEOF: return((ifunc)funeof);
-	 case _DONE: fclose((FILE*)(*aa)); return(itrue);
-	 case _NEW: HDSETFAR(h,NULL); return(itrue);
-	 default: return(p_channel(h, code, aa));
+     case _PUTC: return((ifunc)fputc);
+     case _GETC: return((ifunc)fgetc);
+     case _UNGETC: return((ifunc)ungetc);
+     case _FEOF: return((ifunc)funeof);
+     case _DONE: fclose((FILE*)(*aa)); return(itrue);
+     case _NEW: HDSETFAR(h,NULL); return(itrue);
+     default: return(p_channel(h, code, aa));
    }
 };
 
