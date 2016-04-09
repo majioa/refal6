@@ -1,0 +1,15 @@
+Perek.exe is universal encoder/decoder.
+It performs arbitrary byte-by-byte decoding (perekodirovka) of any file.
+It uses two code tables, one for source (from.abc) and one for target (to.abc).
+Each code table is a text file which contains all symbols to be transformed.
+Both tables should contain identical texts, each in its own coding.
+
+Usage:
+
+perek from.abc to.abc source target
+
+(transforms from KOI-8 to DOS alternative coding)
+
+perek altgraph.abc win.abc source target
+
+(transforms from DOS alternative with pseudographics to Windows)

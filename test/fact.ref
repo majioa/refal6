@@ -1,0 +1,13 @@
+$ENTRY FACT e1 = <Fact e1>;
+Fact {
+  0 = 1;
+  s1 = <MUL s1 <Fact <SUB s1 1>>>;
+  };
+$MODULE;
+$ENTRY DAC s1 s2 = <Dac s1 s2>;
+Dac {
+   s1 s1 = s1;
+   s1 s2, <DIV <ADD s1 s2> 2> : sm = <MUL <Dac s1 sm> <MU Dac <ADD sm 1> s2>>;
+   };
+$END;
+$ENTRY FACT1 s1 = <DAC 1 s1>;

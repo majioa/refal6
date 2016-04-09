@@ -1,0 +1,21 @@
+-- Наибольший общий делитель (от списка)
+GCD {
+   m 0 = m;
+   m n , / <GCDSTEP m n>: u v _ = <GCD u v>;
+   m n _l , <GCD <GCD m n> _l>;
+   m = m;
+   };
+
+-- Ортогональная пара: <ORT x y> == u v, такие что x u + y v = 0
+-- причем u и v - взаимно просты и u>=0.
+-- (т.е. u==1, когда это возможно)
+ORT {
+  m 0 = 0 1;
+  m n , <GCDSTEP m n> : u v u1 v1 u2 v2 , {
+--    u = u1 m + u2 n
+--    v = v1 m + v2 n
+          v:0 = v1 v2;
+          <ORT u v> : p q
+             = <ADD <MUL p u1> <MUL q v1>> <ADD <MUL p u2> <MUL q v2>>;
+          } : a b, <SIGN a> : { 1 = a b; -1 = <MUL -1 a> <MUL -1 b> };
+  };

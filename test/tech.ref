@@ -1,0 +1,508 @@
+*=====  Радуга-2  =================================  (c)  mkSoft, 1992  =====*
+*                                                                            *
+*                            Технические  объекты                            *
+*                            ====================                            *
+*                                                                            *
+*============================================================================*
+
+$EXTERN  MakeBox;                                        /* Видимые объекты */
+$EXTERN  MakeRecord;
+$EXTERN  RecordEnvelop;
+$EXTERN  ListEnvelop;
+$EXTERN  InstanceEnveop;
+$EXTERN  RLI-Envelop;
+$EXTERN  SendSub;
+
+$EXTERN  LC;                                /* Используемые внешние объекты */
+$EXTERN  X-MODE,  X-CONTENTS;
+$EXTERN  X-FORM,  X-NEW,  X-MAKE,  X-MOVE,  X-COPY;
+$EXTERN  X-LENGTH,  X-POS,  X-SUBVAL;
+$EXTERN  X-EXPAND,  X-REPLACE,  X-INSERT,  X-DELETE,  X-SETVAL;
+$EXTERN  MakeObject;
+
+
+*""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""*
+*       Объект "ящик"                                                        *
+* Формат сообщения генератору:                                               *
+*   <MakeBox  s.Ref  [s.Mode  eA]>  ==  s.Ref                                *
+* Формат сообщений объекту:                                                  *
+*   <s.Box  Mode>               ==  s.Mode                                   *
+*   <s.Box>                     ==  t.Contents                               *
+*   <s.Box  Make    s.Mode eA>  ==                                           *
+*   <s.Box  ":="    eA>         ==                                           *
+*   <s.Box  Length>             ==  sN                                       *
+*   <s.Box  Pos     eA>         ==  sN | ()                                  *
+*   <s.Box  SubVal  sN1 sN2>    ==  eX                                       *
+*   <s.Box  Replace sN eA>      ==                                           *
+*   <s.Box  Insert  sN eA>      ==                                           *
+*   <s.Box  Delete  sN1 sN2>    ==                                           *
+*   <s.Box  SetVal  eA>         ==                                           *
+
+MakeBox  {
+  s.Ref  eX,
+    eX  :  {  =  EMPTY;  eX  =  eX  }  :  s.Mode  eA,
+    <MakeObject  s.Ref  *BoxManager  <X-MAKE <X-NEW> s.Mode eA> >;
+};
+
+BoxManager  {
+  s.Obj  s.Container  eX,
+    eX  :  {
+             Mode               =  <X-MODE    s.Container> ;
+                                =  <X-FORM    <s.Obj Mode> s.Container> ;
+             Make    s.Mode eA  =  <X-MAKE    s.Container  s.Mode eA>      , ;
+             ":="    eA         =  <X-MAKE    s.Container  <s.Obj Mode> eA>, ;
+             Length             =  <X-LENGTH  s.Container> ;
+             Pos     eA         =  <X-POS     s.Container  eA> ;
+             SubVal  sN1 sN2    =  <X-SUBVAL  s.Container  sN1 sN2> ;
+             Replace sN eA      =  <X-REPLACE s.Container  sN eA>      , ;
+             Insert  sN eA      =  <X-INSERT  s.Container  sN eA>      , ;
+             Delete  sN1 sN2    =  <X-DELETE  s.Container  sN1 sN2>    , ;
+             SetVal  eA         =  <X-SETVAL  s.Container  eA>         , ;
+           }
+};/*..........................................................BoxObject.....*/
+
+
+*""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""*
+*       Объект "запись с именованными полями"                                *
+*                                                                            *
+*  Формат сообщений генераторам:                                             *
+*     <MakeRecord      s.Ref  s.Type  [e.Message]>  ==  s.Ref                *
+*     <MakeFullRecord  s.Ref  s.Type  [e.Message]>  ==  s.Ref                *
+*  Объект, создаваемый генератором  MakeFullRecord,  отличается тем, что он  *
+*  погружен в оболочку  RLI-Envelop.                                         *
+*                                                                            *
+*  Формат собственных сообщений объекту:                                     *
+*     <s.Record  ".."  s.Field>                         ==  t.FieldContents  *
+*     <s.Record  "::"  s.Field  "="  t.FieldContents>   ==                   *
+*     <s.Record  Type>                                  ==  s.Type           *
+*     <s.Record  MakeInstance  s.NewObj>                ==  s.NewObj         *
+
+MakeRecord  {
+  s.Ref  s.Type  e.Mess  =
+    <MakeObject  s.Ref  *RecordManager  s.Type
+              <X-MAKE <X-NEW> VECTOR <X-EXPAND (()) <X-LENGTH (<s.Type>)>>> >,
+    e.Mess : { = ;  eX = <s.Ref eX>; },
+    s.Ref;
+};
+
+MakeFullRecord  {
+  s.Ref  s.Type  e.Mess  =
+    <RLI-Envelop  <MakeRecord  s.Ref  s.Type>>,
+    e.Mess : { = ;  eX = <s.Ref eX>; },
+    s.Ref;
+};
+
+RecordManager  {
+  s.Record  s.Type  s.Box  ex,
+  ex : {
+         Get  s.Field  =
+/*!!!      <X-SUBVAL  s.Box  <X-POS <s.Type> (s.Field)>  1>;                */
+           <GETS  s.Box  <POS <s.Type> s.Field>  1>;
+         Set  s.Field  "="  t.Contents  =
+/*!!!      <X-REPLACE  s.Box  <X-POS <s.Type> (s.Field)>  (t.Contents)>;    */
+           <SETS  s.Box  <POS <s.Type> s.Field>  1  t.Contents>;
+         Type  =
+           s.Type;
+         MakeInstance  s.New  =
+           <MakeObject s.New *RecordManager s.Type <X-COPY s.Box <X-NEW>> >;
+       };
+};/*.......................................................RecordObject.....*/
+
+
+*""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""*
+*     Оболочка для объектов, содержащих запись с именованными полями.        *
+*                                                                            *
+*  Формат генератора:                                                        *
+*     <RecordEnvelop  s.Ref>  ==  s.Ref                                      *
+*                                                                            *
+*  Форматы специально обрабатываемых сообщений:                              *
+*     <s.Obj  "."  e.Fields>                          ==  e.FieldsContents   *
+*     <s.Obj  ":"  t.Fields  s.Op  t.FieldsContents>  ==                     *
+*     <s.Obj  MakeInstance  s.New>                    ==  s.New              *
+*                                                                            *
+*  В сообщении "." e.Fields есть последовательность термов, каждый из кото-  *
+*  рых есть либо символ-слово, либо терм, содержимое которого есть последо-  *
+*  вательность термов, каждый из которых есть либо ... Это сообщение транс-  *
+*  лируется в последовательность сообщений вида:                             *
+*       <SendSub  s.IntObj  s.Obj  ".."  s.Field>                            *
+*  где s.Field пробегает все символы-слова аргумента; переходу к содержимо-  *
+*  му в аргументе соответствуют скобки в последовательности сообщений.       *
+*                                                                            *
+*  В сообщении ":"  s.Operation есть символ-слово (определяет операцию, ко-  *
+*  торая должна быть выполнена;  для случая обычной записи здесь может быть  *
+*  только "="  -  присваивание нового значения полю записи).  t.Fields есть  *
+*  либо символ-слово,  либо  терм,  содержимое которого есть последователь-  *
+*  ность термов, каждый из которых есть либо ... .  t.FieldsContents должен  *
+*  иметь структуру, аналогичную t.Fields. Это сообщение транслируется в по-  *
+*  следовательность сообщений вида:                                          *
+*     <SendSub  s.IntObj  s.Obj  "::"  s.Field  s.Operation  t.FieldCont>    *
+*  где s.Field пробегает все символы-слова из t.Fields.                      *
+
+RecordEnvelop  {
+  s.Obj  =
+    <X-MOVE  s.Obj  <X-NEW>> : s.IntObj,
+    <MakeObject  s.Obj  *RecordEnvelopManager  s.IntObj>;
+};
+
+RecordEnvelopManager  {
+  s.Obj  s.IntObj  e.Mess,
+    e.Mess  :  {
+                 "."  eA  =
+                   <RE-Mgr1  s.Obj  s.IntObj  eA>;
+                 ":"  t1  s.Op  t2  =
+                   <RE-Mgr2  s.Obj  s.IntObj  t1  s.Op  t2>;
+                 MakeInstance  s.NewObj =
+                   <MakeObject  s.NewObj  *RecordEnvelopManager
+                                          <s.IntObj  MakeInstance  <X-NEW>> >;
+                 eX  =
+                   <SendSub  s.IntObj  s.Obj  eX>;
+               };
+};
+
+RE-Mgr1  {
+  s.Obj  s.IntObj  eA,
+    eA  :  {
+             s1  e2,  <X-MODE s1> : STRING  =
+               <s.Obj  Get  s1>
+               <RE-Mgr1  s.IntObj  s.Obj  e2>;
+             t1  e2  =
+               ( <RE-Mgr1  s.IntObj  s.Obj  <X-CONTENTS t1> > )
+               <RE-Mgr1  s.IntObj  s.Obj  e2>;
+             = ;
+           };
+};
+
+RE-Mgr2  {
+  s.Obj  s.IntObj  t1  s.Op  t2,
+    t1  :  {
+             sX,  <X-MODE sX> : STRING  =
+               <s.Obj  Set  t1  s.Op  t2>;
+             t1  =
+               <RE-Mgr21  s.Obj  s.IntObj
+                                 (<X-CONTENTS t1>)  s.Op  (<X-CONTENTS t2>) >;
+           };
+};
+
+RE-Mgr21  {
+  s.Obj  s.IntObj  eA,
+    eA  :  {
+             (t1 eX)  s.Op  (t2 eY)  =
+               <RE-Mgr2   s.Obj  s.IntObj  t1    s.Op  t2  >
+               <RE-Mgr21  s.Obj  s.IntObj  (eX)  s.Op  (eY)>;
+             ()  s.Op  ()  = ;
+           };
+};/*......................................................RecordEnvelop.....*/
+
+
+*""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""*
+*     Оболочка - список сообщений.                                           *
+*                                                                            *
+*  Формат генератора:                                                        *
+*     <ListEnvelop  s.Ref>  ==  s.Ref                                        *
+*                                                                            *
+*  Форматы специально обрабатываемых сообщений:                              *
+*     <s.Obj  List  (e.Mess1) ... (e.MessN)>  ==  e.AnswerN                  *
+*     <s.Obj  MakeInstance  s.New>            ==  s.New                      *
+*                                                                            *
+*  Это сообщение транслируется в последовательность сообщений:               *
+*       <SendSub  s.IntObj  s.Obj  e.Mess1>                                  *
+*       .....                                                                *
+*       <SendSub  s.IntObj  s.Obj  e.MessN>                                  *
+*  Ответы на все подсообщения, кроме последнего, теряются; ответ на послед-  *
+*  нее подсообщение является ответом на все сообщение.                       *
+
+ListEnvelop  {
+  s.Obj  =
+    <X-MOVE  s.Obj  <X-NEW>> : s.IntObj,
+    <MakeObject  s.Obj  *ListEnvelopManager  s.IntObj>;
+};
+
+ListEnvelopManager  {
+  s.Obj  s.IntObj  e.Mess,
+    e.Mess  :  {
+                 List  =
+                   ;
+                 List  t1  eX  =
+                   <s.Obj  <X-CONTENTS t1> >,
+                   <ListEnvelopManager  s.Obj  s.IntObj  List  eX>;
+                 MakeInstance  s.NewObj =
+                   <MakeObject  s.NewObj  *ListEnvelopManager
+                                          <s.IntObj  MakeInstance  <X-NEW>> >;
+                 e.Mess  =
+                   <SendSub  s.IntObj  s.Obj  e.Mess>;
+               };
+};/*........................................................ListEnvelop.....*/
+
+
+*""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""*
+*     Оболочка - создание нового экземпляра объекта.                         *
+*     Эта оболочка автоматически присоединяет оболочку ListEnvelop.          *
+*                                                                            *
+*  Формат генератора:                                                        *
+*     <InstanceEnvelop  s.Ref>  ==  s.Ref                                    *
+*                                                                            *
+*  Форматы специально обрабатываемых сообщений:                              *
+*     <s.Obj  Instance  (e.Mess1) ... (e.MessN)>  ==  e.AnswerN              *
+*     <s.Obj  MakeInstance  s.New>                ==  s.New                  *
+*                                                                            *
+*  По сообщению Instance главному объекту посылается сообщение:              *
+*       <s.Obj  MakeInstance  <X-NEW>>                                       *
+*  (из чего следует, что объект, заключаемый в эту оболочку, и все его обо-  *
+*  лочки должны уметь обрабатывать такое сообщение;  по нему они должны со-  *
+*  здать новые экземпляры всего, что может испортиться),  и далее созданной  *
+*  копии посылается сообщение:                                               *
+*       <s.NewObj  List  (e.Mess1) ... (e.MessN)>                            *
+*  Созданная копия объекта теряется.                                         *
+*     Все  описанные  в данном модуле объекты и оболочки умеют обрабатывать  *
+*  сообщение MakeInstance.                                                   *
+
+InstanceEnvelop  {
+  s.Obj  =
+    <X-MOVE  s.Obj  <X-NEW>> : s.IntObj,
+    <ListEnvelop  <MakeObject s.Obj *InstanceEnvelopManager s.IntObj> >;
+};
+
+InstanceEnvelopManager  {
+  s.Obj  s.IntObj  e.Mess,
+    e.Mess  :  {
+                 Instance  eX  =
+                   <<s.Obj  MakeInstance  <X-NEW>>  List  eX>;
+                 MakeInstance  s.NewObj =
+                   <MakeObject  s.NewObj  *ListEnvelopManager
+                                          <s.IntObj  MakeInstance  <X-NEW>>>;
+                 e.Mess  =
+                   <SendSub  s.IntObj  s.Obj  e.Mess>;
+               };
+};/*....................................................InstanceEnvelop.....*/
+
+
+*""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""*
+*     Оболочка - объединение оболочек Record, List и Instance.               *
+
+RLI-Envelop  {
+  s.Obj  =
+    <ListEnvelop  <InstanceEnvelop  <RecordEnvelop  s.Obj>>>;
+};/*........................................................RLI-Envelop.....*/
+
+
+*""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""*
+*     Послать объекту сообщение, подстановив на место ссылки на объект дру-  *
+*  гую ссылку.                                                               *
+*                                                                            *
+*     Формат обращения:                                                      *
+*               <SendSub  sX  sY  e.Mess>                                    *
+*                                                                            *
+*     Возможны два случая:                                                   *
+*                                                                            *
+*   а) sX есть символ-ссылка на объект, не являющийся функцией; в этом слу-  *
+*      чае посылка сообщения:                                                *
+*               <sX  e.Mess>                                                 *
+*      эквивалентна посылке сообщения базовому объекту:                      *
+*               <BaseObj  sX  e.ConstPart  e.Mess>                           *
+*      Тогда                                                                 *
+*               <SendSub  sX  sY  e.Mess>                                    *
+*      эквивалентно:                                                         *
+*               <BaseObj  sY  e.ConstPart  e.Mess>                           *
+*                                                                            *
+*   б) sX есть символ-ссылка на обычную функцию; в этом случае               *
+*               <SendSub  sX  sY  e.Mess>                                    *
+*      эквивалентно просто:                                                  *
+*               <sX  e.Mess>                                                 *
+*                                                                            *
+*     Эта функция используется для построения оболочек.                      *
+
+SendSub  {
+  tX tY e.Mess ,
+    {
+      <GETV tX> : {
+                    Object tB e.Fix , <tB tY e.Fix e.Mess>;
+                    eZ , <tX e.Mess>;
+                  };
+      <SEND tX e.Mess>;
+    };
+};/*............................................................SendSub.....*/
+
+
+*----------------------------------------------------------------------------*
+*                                                                            *
+*       Объект "экран".                                                      *
+*                                                                            *
+*  Генератор:                                                                *
+*          <MakeVideo  s.Ref  [e.Initialize]>  ==  s.Ref                     *
+*  e.Initialize, если присутствует, есть последовательность термов,  содер-  *
+*  жимое которых есть сообщения, последовательно посылаемые вновь созданно-  *
+*  му объекту "экран".                                                       *
+*                                                                            *
+*     При работе с объектом "экран" постоянно используются термы,  задающие  *
+*  точки и вектора (далее обозначаются t.Pnt).  Формат  содержимого  такого  *
+*  терма:                                                                    *
+*          s.Type  s.X  s.Y  ...                                             *
+*  где:  s.Type  - символ-слово, определяющее трактовку остальной части со-  *
+*  держимого;  s.X, s.Y, ...  - символы-числа - x-, y-, ... координаты.      *
+*     Пока что допускаются следующие варианты содержимого:                   *
+*       A  sX  sY   - терм задает точку в абсолютных координатах экрана      *
+*       R  sX  sY   - терм задает точку в координатах относительно Origin    *
+*       V  sX  sY   - терм задает вектор (откладываемый от последней "теку-  *
+*                     щей точки")                                            *
+*       S  sX  sY   - эквивалентно:   V  <"-" sX 1>  <"-" sY 1>              *
+*  В дальнейшем возможно введение новых типов и увеличение числа координат.  *
+*                                                                            *
+*  Сообщения, обрабатываемые объектом "экран":                               *
+*                                                                            *
+*       <s.Video  "."  s.AttrName>                       ==  t.AttrContents  *
+*       <s.Video  ":"  s.AttrName  "="  t.AttrContents>  ==                  *
+*  и производные от них; в качестве аргументов здесь допускается:            *
+*          s.AttrName:             t.AttrContents:                           *
+*                  Color                   sN                                *
+*                  BackColor               sN                                *
+*                  Background              On | Off                          *
+*                  Origin                  t.Point                           *
+*                  ClipArea                (t.Point0  t.Point1)              *
+*                  Function                Set | Or | And | Xor              *
+*                  Pallete                 s.PalleteObj                      *
+*                  DrawStyle               s.DrawStyleObj                    *
+*                  FillStyle               s.FillStyleObj                    *
+*                  OutStyle                s.OutStyleObj                     *
+*                  Font                    s.FontObj                         *
+*     Для атрибутов, возможное значение которых есть s.?Obj, предполагается  *
+*  следующая дисциплина: они должны быть сформированы до передачи их объек-  *
+*  ту Video;  после передачи их объекту Video никакое изменение их содержи-  *
+*  мого не допускается.                                                      *
+*     Origin  до явной установки имеет значение  (A 0 0);  модифицироваться  *
+*  может с помощью любого формата; при чтении всегда выдается в A-формате.   *
+*     ClipArea задается так же,  как и прямоугольник;  для задания ClipArea  *
+*  возможны любые форматы,  но: сразу выполняется преобразование в абсолют-  *
+*  ные координаты, и дальнейшие изменения  Origin  или чего еще не изменяют  *
+*  положения ClipArea. При чтении поля ClipArea всегда возвращаются коорди-  *
+*  наты левого верхнего и правого нижнего углов в A-формате.  До  установки  *
+*  чтение ClipArea выдает:                                                   *
+*          ( (A 0 0)  (A s.PhisicalMaxX s.PhisicalMaxY) )                    *
+*  -  это может быть использовано для определения физических размеров экра-  *
+*  на.                                                                       *
+*                                                                            *
+*    <s.Video  Draw  Pixel      t.Pnt>                       ==  t.Pnt       *
+*    <s.Video  Draw  Line       t.Pnt0 t.Pnt1 [t.Pnt2 ...]>  ==  t.Pnt       *
+*    <s.Video  Draw  Polygon    t.Pnt0 t.Pnt1 [t.Pnt2 ...]>  ==  t.Pnt       *
+*    <s.Video  Draw  Rectangle  t.Pnt0 t.Pnt1>               ==  t.Pnt       *
+*    <s.Video  Draw  Ellipse    t.Pnt0  t.XAxis t.YAxis>     ==  t.Pnt       *
+*                                                                            *
+*    <s.Video  Fill  Polygon    t.Pnt0 t.Pnt1 [t.Pnt2 ...]>  ==  t.Pnt       *
+*    <s.Video  Fill  Rectangle  t.Pnt0 t.Pnt1>               ==  t.Pnt       *
+*    <s.Video  Fill  Ellipse    t.Pnt0  t.XAxis t.YAxis>     ==  t.Pnt       *
+*    <s.Video  Fill  Area       ???>                         ==  ???         *
+*                                                                            *
+*    <s.Video  Out   Text  e.Text>                           ==  t.Pnt       *
+*                  e.Text: печатается конкатенация содержимого составляющих  *
+*                          e.Text термов ( <LC e.Text> )                     *
+*    <s.Video  Move  Rectangle  t.Pnt0 t.Pnt1  To   t.Pnt>   ==  t.Pnt       *
+*    <s.Video  Move  Rectangle  t.Pnt0 t.Pnt1  From t.Pnt>   ==  t.Pnt       *
+*                                                                            *
+*  Составное сообщение:                                                      *
+*    <s.Video  List  (e.Mess1)  ...  (e.MessN)>  ==  e.AnswerN               *
+*                                                                            *
+*----------------------------------------------------------------------------*
+
+
+*----------------------------------------------------------------------------*
+*                                                                            *
+*       Объект "шрифт".                                                      *
+*                                                                            *
+*  Генератор:                                                                *
+*          <MakeFont  s.Ref>  ==  s.Ref                                      *
+*                                                                            *
+*  Сообщения, обрабатываемые объектом "шрифт":                               *
+*          <s.Font  Load  s.XSize  s.YSize  e.Filename>  ==  T | F           *
+*          <s.Font  "."  X>                              ==  s.XSize         *
+*          <s.Font  "."  Y>                              ==  s.YSize         *
+*  (e.Filename:  именем файла является конкатенация составляющих e.Filename  *
+*  термов)                                                                   *
+*                                                                            *
+*----------------------------------------------------------------------------*
+
+
+$ENTRY  GO  {
+  =
+<PRINT  "<MakeFullRecord  <X-NEW>  *T>" >                            <PRINTLN>,
+    <MakeFullRecord  <X-NEW>  *T>  : s.Rec,
+<PRINT  "<s.Rec : F1 = 123>" >                                       <PRINTLN>,
+    <s.Rec ":" F1 "=" 123>,
+<PRINT  "<s.Rec . F1> : e1" >                                        <PRINTLN>,
+    <s.Rec "." F1> : e1,
+<PRINT  "  == " e1 >                                                 <PRINTLN>,
+<PRINT   "<s.Rec List (: F2 = 22222) (: F5 = ('xyz'))>" >            <PRINTLN>,
+    <s.Rec List (":" F2 "=" 22222) (":" F5 "=" ('xyz'))>,
+<PRINT   "<s.Rec . F2 F5 F1> : e2" >                                 <PRINTLN>,
+    <s.Rec "." F2 F5 F1> : e2,
+<PRINT  "  == " e2 >                                                 <PRINTLN>,
+<PRINT   "<s.Rec : (F1 F3 (F4 F5)) = (aa bb (cc dd))>" >             <PRINTLN>,
+    <s.Rec ":" (F1 F3 (F4 F5)) "=" ("aa" "bb" ("cc" "dd"))>,
+<PRINT   "<s.Rec . (F1 (F2 F3) F4) F5> : e3" >                       <PRINTLN>,
+    <s.Rec "." (F1 (F2 F3) F4) F5> : e3,
+<PRINT  "  == " e3 >                                                 <PRINTLN>,
+<PRINT   "<s.Rec List (: (F1 F2) = (1 2))  (: ((F3)(F4)) = ((3)(4)))  (: F5 = 5)>" >  <PRINTLN>,
+    <s.Rec List (":" (F1 F2) "=" (1 2))  (":" ((F3)(F4)) "=" ((3)(4)))  (":" F5 "=" 5)>,
+<PRINT   "<s.Rec . (F1 (F2 F3) F4) F5> : e4" >                       <PRINTLN>,
+    <s.Rec "." (F1 (F2 F3) F4) F5> : e4,
+<PRINT  "  == " e4 >                                                 <PRINTLN>,
+{
+  <s.Rec  Instance  (":" F1 "=" ZZZ)  ("." F1)>  : e9,
+  <PRINTLN  "  == " e9>,
+  <s.Rec  "." F1> : e8,
+  <PRINTLN  "  == " e8>,
+},
+{
+<PRINT  "100 assignments: " >,
+<TIME_ELAPSED> : sT1,  <STEP> : sS1,
+<Go1 s.Rec 100>,
+<TIME_ELAPSED> : sT2,  <STEP> : sS2,
+<PRINT <"-" sT2 sT1> " sec,   "  <"-" sS2 sS1> "steps">   <PRINTLN>,
+},
+{
+<PRINT  "100 readings: " >,
+<TIME_ELAPSED> : sT1,  <STEP> : sS1,
+<Go2 s.Rec 100>,
+<TIME_ELAPSED> : sT2,  <STEP> : sS2,
+<PRINT <"-" sT2 sT1> " sec,   "  <"-" sS2 sS1> "steps">  <PRINTLN>,
+},
+
+<MakeRecord  <X-NEW>  *T>  :  s.Rec1,
+{
+<PRINT  "100 plane assignments: " >,
+<TIME_ELAPSED> : sT1,  <STEP> : sS1,
+<Go11 s.Rec1 100>,
+<TIME_ELAPSED> : sT2,  <STEP> : sS2,
+<PRINT <"-" sT2 sT1> " sec,   "  <"-" sS2 sS1> "steps">   <PRINTLN>,
+},
+{
+<PRINT  "100 plane readings: " >,
+<TIME_ELAPSED> : sT1,  <STEP> : sS1,
+<Go12 s.Rec1 100>,
+<TIME_ELAPSED> : sT2,  <STEP> : sS2,
+<PRINT <"-" sT2 sT1> " sec,   "  <"-" sS2 sS1> "steps">  <PRINTLN>,
+},
+<PRINTLN  "End of test"> <READLN>,
+
+    ;
+};
+Go1  {
+  s.Rec 0  = ;
+  s.Rec sN = <s.Rec ":" F5 "=" 5>
+             <Go1 s.Rec <"-" sN 1>>;
+};
+Go2  {
+  s.Rec 0  = ;
+  s.Rec sN = <s.Rec "." F5 >,
+             <Go2 s.Rec <"-" sN 1>>;
+};
+Go11  {
+  s.Rec 0  = ;
+  s.Rec sN = <s.Rec Set F5 "=" 5>
+             <Go11 s.Rec <"-" sN 1>>;
+};
+Go12  {
+  s.Rec 0  = ;
+  s.Rec sN = <s.Rec Get F5 >,
+             <Go12 s.Rec <"-" sN 1>>;
+};
+
+T  =  (F1 F2 F3 F4 F5);

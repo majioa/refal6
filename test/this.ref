@@ -1,0 +1,6 @@
+$VECTOR D;
+A = A;
+B = B;
+$ENTRY C = <GETV &THISTABLE> *D;
+
+$ENTRY M sx ea = <MU sx ea>;

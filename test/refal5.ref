@@ -1,0 +1,192 @@
+***********************************************************
+*                  R E F A L - 6                          *
+*            Copyright (C) by Arkady Klimov               *
+***********************************************************
+*              Refal-5 compatibility                      *
+***********************************************************
+
+$BOX  MEM;
+
+***********************************************************
+*  Memory functions
+
+$ENTRY BR { eN '=' eX = <WTR *MEM ((eN) eX) <GTR *MEM>> };
+
+$ENTRY RP { eN '=' eX , <Lookup eN> : {
+    (e1) (eY) e2 = <WTR *MEM ((eN) eX) e1 e2>;
+    (e1) = <WTR *MEM ((eN) eX) e1>;
+};  };
+
+$ENTRY DG  { eN , <Lookup eN> : {
+    (e1) (eY) e2 = eY <WTR *MEM e1 e2>;
+    (e1) = <WTR *MEM e1>;
+};  };
+
+$ENTRY CP  { eN , <Lookup eN> : {
+    (e1) (eY) e2 = eY <WTR *MEM e1 ((eN) eY) e2>;
+    (e1) = <WTR *MEM e1>;
+};  };
+
+Lookup { eN = <Lookup1 (eN) () <GTR *MEM>> };
+Lookup1 {
+   (eN) (e1) ((eN) eY) e2 = (e1) (eY) e2 ;
+   (eN) (e1) ((eM) eY) e2 = <Lookup1 (eN) (e1 ((eM) eY)) e2> ;
+   (eN) (e1) = (e1) ;
+   };
+
+$ENTRY DGALL  { = <DGALL1 <GTR *MEM>> };
+DGALL1 {
+   ((eN) eX) eY = (eN '=' eX) <DGALL1 eY>;
+   =;
+   };
+
+**********************************************************
+*  Function Sysfun:
+*  <Sysfun 1 eA> - INput eXpression in eXchanxge format
+
+$ENTRY SYSFUN {
+     1 e1 = <Xxin e1>;
+     };
+
+*  INput eXpression in eXchanxge format
+Xxin { = <Xxinr1 0>;
+       sC, <Type sC>: 'N'sC = <Xxinr1 sC>;
+       e.File, <Status 'r'e.File>: {
+                New sC = <Open 'r' sC e.File>
+                         <Xxinr1 sC>;
+                Old sC = <Xxinr1 sC>;
+       }        };
+
+* Remove functions from global environment
+$EXEC TABLE_VALUE *SYSTABLE 'D' OPEN;
+$EXEC TABLE_VALUE *SYSTABLE 'D' CLOSE;
+$EXEC TABLE_VALUE *SYSTABLE 'D' GET;
+$EXEC TABLE_VALUE *SYSTABLE 'D' PRINT;
+
+$ENTRY OPEN sM sC e.File = <OPEN_FILE <ADD sC 3> e.File <SETV X sM>>:T =;
+$ENTRY CLOSE sC = <CLOSE_CHANNEL <ADD sC 3>>;
+$ENTRY GET sC, <EOF <ADD sC 3>> : { F = <READ_LINE! <ADD sC 3>>; T = 0 };
+$ENTRY PRINT eA = eA <PROUT eA>;
+$ENTRY PROUT eA = <PRINTLN! 1 <InsB eA>>;
+$ENTRY PUTOUT sC eA = <PRINTLN! <ADD sC 3> <InsB eA>>;
+$ENTRY PUT sC eA = eA <PUTOUT sC eA>;
+$ENTRY CARD = <READ_LINE! 0>;
+InsB  {
+   =;
+   (ea) eb = (<InsB ea>)  <InsB1 eb>;
+   sa ex , <MODE sa> : {
+      CHAR = sa <InsB ex>;
+      sm   = sa <InsB1 ex>;
+   }; };
+InsB1 { =; ex = ' ' <InsB ex> };
+
+Status { sM e.File, <F-table> : {
+        e1 sC(sM '/'e.File) e2 = Old sC
+                        <Br 153443950 '=' e1 sC(sM'/'e.File) e2>;
+        e1 sC(s.M1'/'e.File) e2 = New sC
+                        <Br 153443950 '=' e1 sC(sM'/'e.File) e2>;
+        e1 sC sX e2 = New sC
+                         <Br 153443950 '=' e1 sC(sM'/'e.File)sX e2>;
+        e1 = <Prout "Sorry. Can't open " e.File". No more channels">;
+     }; };
+* File-table
+F-table { , <Dg 153443950> : {
+            = 19 18 17 16 15 14 13 12 11 10 9 8 7 6 'X';
+            e1 = e1;
+         }; };
+
+Xxinr1 {sC = <Mescp ('$')<Read-all sC <Get sC>>>; };
+
+Read-all {
+  sC 0 = EOF;
+  sC eX = eX <Read-all sC <Get sC>>;
+  };
+
+* Meet ESCape character and Pair parentheses
+Mescp {
+  (e1) '##' e2 = <Mescp (e1'#') e2>;
+  (e1) '#(' e2 = <Mescp (e1'(') e2>;
+  (e1) '#)' e2 = <Mescp (e1')') e2>;
+  (e1) '#' EOF = <Prout 'Error: single # at the end'> <ADD>;
+/* Add is called improperly to produce abnormal stop */
+  (e1) '#'sA e2 = <Mescp1 (<TYPE sA>)(e1)(sA) e2>;
+  (e1) '(' e2 = <Mescp ((e1)) e2>;
+  ((e1)e2) ')'e3 = <Mescp (e1(e2)) e3>;
+  (e1) ')'e3 =  <Prout> <Prout>
+                <Prout 'Unbalanced ) in input'>
+                <Prout e1' ***)***'>;
+  (e1) EOF = <Mescp (e1)>;
+  (e1) sA e2 = <Mescp (e1 sA) e2>;
+  ('$'e1) = e1;
+  ((e1)e2) =    <Prout> <Prout>
+                <Prout 'Unbalanced (... in input'>
+                <Prout e1 ' ***(***'>;
+      };
+
+Mescp1 {
+  ('L'sA)(e1)(sA e2)' 'e3 = <Mescp (e1 <Implode sA e2>) e3>;
+  ('L'sA)(e1)(sA e2) EOF = <Mescp (e1 <Implode sA e2>) >;
+  ('D'sA)(e1)(sA e2)' 'e3 = <Mescp (e1 <NUMB sA e2>) e3>;
+  ('D'sA)(e1)(sA e2) EOF = <Mescp (e1 <NUMB sA e2>) >;
+  (sT sA)(e1)(sA e2)sX e3 = <Mescp1 (sT sA)(e1)(sA e2 sX) e3>;
+       };
+
+************************************************************
+* Redefinition of IMPLODE
+
+$ENTRY IMPLODE { e1 = <Worda <TYPE e1>> };
+Worda {
+   'L'eX = <Word1 () eX>;
+   'l'eX = <Word1 () eX>;
+   sT eX = 0 eX;
+   };
+Word {
+   (eS) 'L'eX = <Word1 (eS) eX>;
+   (eS) 'l'eX = <Word1 (eS) eX>;
+   (eS) 'D'eX = <Word1 (eS) eX>;
+   (eS) sT eX = <Word2 (eS) eX>;
+   };
+Word1 { (eS) sA eX = <Word (eS sA) <TYPE eX>>};
+Word2 {
+   (eS) '-' eX = <Word1 (eS) '-' eX>;
+   (eS) '_' eX = <Word1 (eS) '_' eX>;
+   (eS) eX = <SETV X <UPPER eS>> eX;
+   };
+
+*******************************************************
+* Redefinition of arithmetic functions
+
+$ENTRY ADD { eA = <ARR <"+" <ARA eA>>>};
+$ENTRY SUB { eA = <ARR <"-" <ARA eA>>>};
+$ENTRY MUL { eA = <ARR <"*" <ARA eA>>>};
+$ENTRY DIV { eA = <ARR <"/" <ARA eA>>>};
+$ENTRY MOD { eA = <ARR <"%" <ARA eA>>>};
+$ENTRY DIVMOD { eA , <"\\" <ARA eA>> : sQ sR
+           = (<ARR sQ>) <ARR sR> };
+
+* Adjust arithmetic argument
+ARA {
+  (s1) s2 = s1 s2;
+  ('-'s1) e2 = <ARA (<"-" 0 s1>) e2>;
+  (s1) '-' s2 = s1 <"-" 0 s2>;
+  '-' s1 e2 = <ARA <"-" 0 s1> e2>;
+  s1 s2 = s1 s2;
+  s1 '-' s2 = s1 <"-" 0 s2>;
+  };
+
+* Adjust arithmetic result
+ARR { sN , <COMPARE sN 0> : {
+   '<' = '-' <SUB 0 sN>;
+   sR  = sN;
+}  };
+
+***************************************************************
+* Redefinition of TYPE
+
+$ENTRY TYPE eA, <TYPE6 eA> : st ex = <UPPER st> ex;
+
+$EXTERN TYPE6;
+
+***************************************************************
+
+$EXEC SHIFT *SYSARG 0 -1;

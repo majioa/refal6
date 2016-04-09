@@ -1,0 +1,143 @@
+******************************************************
+*        Test for the mouse (event) driver           *
+******************************************************
+$SET NumberOfEvents 0, GetCheck Get;
+
+* This function is invoked by <tR eA> when tR is not a function
+APPLY_OBJECT  tR eA , {
+       <GETV tR> : {
+             Object tB eF , <tB tR eF eA>;
+             tB eF , <tB eF eA>;
+             };
+       <SEND tR eA>;
+       };
+
+Map {
+   tf tn em = <tf tn> <Map tf em>;
+   tf       =;
+   };
+
+GO = <Init> <Do> <Close>;
+
+Init = <INITGRAPH> <MAKE VIDEO *VIDEO>
+  <VIDEO List <Draws (0 0)
+ (Rect <BLACK>     <RED>   <RectEnd>   "0001100011"
+        (Text (56 13) "End Of Test"))
+ (Rect <DARKGRAY> <YELLOW>  <RectKbd>   "000111"
+        (Text (18 16) "KbdMou On/Off"))
+ (Rect <DARKGRAY> <YELLOW>  <RectGetCheck>   "000111"
+        (Text (10 16) "Event Get/Check"))
+ (Rect <DARKGRAY> <YELLOW> <RectDrag>   "000111"
+        (Text (26 16) "Drag On/Off"))
+ (Rect <LIGHTGRAY> <BLUE>   <RectEvent> "000111"
+        (Text (20 16)  "Event =")
+        (Text (20 104) "Total number of events = ") )
+        >> <MOUSE Pointer On>;
+
+Close = <CLOSEGRAPH>;
+
+Do = <MOUSE <GET *GetCheck>> : e.Mes =
+       <SET *NumberOfEvents <ADD *NumberOfEvents 1>> , {
+       e.Mes : (Mouse Left ez) t.Mod sX sY , {
+          <Inside (sX sY) <RectKbd>> = <Alt KbdMouse> =;
+          <Inside (sX sY) <RectGetCheck>> = <AltGetCheck> =;
+          <Inside (sX sY) <RectDrag>> = <Alt Drag> =;
+          <Inside (sX sY) <RectEnd>> = STOP;
+          };
+       = } : e.Res =
+             <VIDEO List
+                (":" (Color BackColor) "=" (<LIGHTGRAY> <BLUE>))
+                (":" Background "=" On)
+                (":" Current "=" <P <MovPos <RectEvent> (20 40)>>)
+                (Out Text (<GETS (<ENCODE 0 e.Mes>) 0 30>))
+                (":" Current "=" <P <MovPos <RectEvent> (220 104)>>)
+                (Out Text (<GETS (<TO_CHARS <GET *NumberOfEvents>>) 0 4>))
+                >
+             = e.Res : { = <Do>; STOP = };
+
+RectKbd      = <Rect ( 50 100) (140  48)>;
+RectGetCheck = <Rect (250 100) (140  48)>;
+RectDrag     = <Rect (450 100) (140  48)>;
+RectEvent    = <Rect (180 240) (280 132)>;
+RectEnd      = <Rect (220 420) (200  40)>;
+
+Alt sM = <MOUSE sM> : { On = Off; Off = On } : sN = <MOUSE sM sN>;
+AltGetCheck = <GET *GetCheck> : { Get = Check; Check = Get } : sN
+            = <SET *GetCheck sN> = ;
+
+Inside (sX sY) (s1 s2 s3 s4) , <Insgm sX s1 s3> <Insgm sY s2 s4>;
+
+Insgm sX sN sL , <COMPARE sN sX>: #'>', <COMPARE sX <ADD sN sL>>:'<';
+
+FAIL {};
+
+
+
+
+
+
+
+
+
+
+Rect (sX sY) (sW sH) = (sX sY sW sH);
+
+DecRect  {
+   0 tR = tR;
+   sK (sL sT sR sB), <MUL sK 2> : sKK
+         = (<ADD sL sK> <ADD sT sK> <SUB sR sKK> <SUB sB sKK>);
+   };
+
+MovRect (sX sY) (s1 s2 s3 s4) =
+            (<ADD s1 sX> <ADD s2 sY> s3 s4);
+
+MovPos  (sX sY eZ) (s1 s2) = (<ADD s1 sX> <ADD s2 sY>);
+
+RectPos (s1 s2 e3) = (s1 s2);
+
+DrawRect sF sB tR t.Prof =
+                 <SetColor sB sB>
+                 (Fill Rectangle <R tR>)
+                 <SetColor sF sB>
+                 <DrawFrame tR t.Prof>;
+
+DrawFrame t.Rect t.Prof, <POS t.Prof '1'> : {
+       () = ;
+       =;
+       s.Pos e.Rest = (Draw Rectangle <R <DecRect s.Pos t.Rect>>)
+               <DrawFrame <DecRect <ADD s.Pos 1> t.Rect>
+                          <SHIFT t.Prof 0 <SUB 0 <ADD s.Pos 1>>> >;
+       };
+
+SetColor sF sB = (":" (Color BackColor) "=" (sF sB));
+
+Draw {
+   t0 (Rect sF sB t.Rect t.Prof e.Cont) = <MovRect t0 t.Rect>:t.Rect1,
+       <DrawRect sF sB <MovRect t0 t.Rect> t.Prof>
+            <Draws <RectPos t.Rect1> e.Cont>;
+   t0 (Text t.Pos eT) =
+        (":" Current "=" <P <MovPos t0 t.Pos>>) (Out Text (eT));
+   };
+Draws t0 eX = <Map (*Draw t0) eX>;
+
+P (sX sY) = (A sX sY);
+R (sX sY sW sH) = (A sX sY) (C sW sH);
+
+BLACK     = 0;
+BLUE      = 1;
+GREEN     = 2;
+CYAN      = 3;
+RED       = 4;
+MAGENTA   = 5;
+BROWN     = 6;
+LIGHTGRAY = 7;
+DARKGRAY     = 8;
+LIGHTBLUE    = 9;
+LIGHTGREEN   = 10;
+LIGHTCYAN    = 11;
+LIGHTRED     = 12;
+LIGHTMAGENTA = 13;
+YELLOW       = 14;
+WHITE        = 15;
+
+$EXEC GO,EXIT;

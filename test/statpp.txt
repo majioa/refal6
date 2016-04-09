@@ -1,0 +1,6 @@
+Compiling pp.ref, TURBO
+                Parsing                Compiling        Processor
+20.4.94                23.0                35.5                AT-286-16MH-TURBO
+16.06.99        1.37                2.42                 P-PRO-200 (old ri.exe - DOS version)
+16.06.99        0.44                0.72                P-PRO-200 (new DEVSTUDIO C++ 5.0 made version)
+16.06.99        0.27                0.45                P-II-300 (new DEVSTUDIO C++ 5.0 made version)

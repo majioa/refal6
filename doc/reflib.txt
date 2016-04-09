@@ -1,0 +1,296 @@
+              REFAL-6 LIBRARY - A QUICK REFERENCE
+              ===================================
+                    (C) Arkady Klimov, 1993
+
+PREDEFINED TYPES -------------------------------------------------------
+
+Symbol types:  char int real word vector func file table
+
+$  val :- int | real | word | (e) | vector | func | file | table
+$  var :- *val
+$  t   :- val | var
+$  e   :- | t e
+$  s   :- t-(e)
+
+New types are defined by (recursive) equations.
+The notation *type (where type is a subtype of t) denotes that
+this object is a variable, which is assigned value of a given type.
+The notation &type is a shorthand for type | *type.
+
+Below builtin functions are listed, each being defined by one
+or severel format statements. Each format statement has two patterns:
+one for argument, one - for result. Each pattern variable is
+built as a combination of a type sign and an index (optionally empty),
+optionally separated by a dot. Equal pattern variables in one statement
+must take equal values. The sign "|" means disjoint union (of types).
+
+Value symbols (not variables) of types table, func, file, vector, video
+cannot be expressed in refal. However they can be obtained
+from correspondent variables by means of the function GET (see below).
+
+NUMERICAL COMPUTATION --------------------------------------------------
+
+$  n :- int | real
+
+$  <ADD &n1 &n2>     == n
+$  <SUB &n1 &n2>     == n
+$  <MUL &n1 &n2>     == n
+$  <DIV &n1 &n2>     == n
+$  <MOD &n1 &n2>     == n
+$  <DIVMOD &n1 &n2>  == n.Q n.R
+$  <FUNC Abs &int>   == int
+$  <FUNC Abs &real>  == real
+$  <FUNC Sign &n>    == -1 | 0 | 1
+$  <FUNC Sqrt &n>    == real
+$  <FUNC Exp  &n>    == real
+$  <FUNC Log  &n>    == real
+$  <FUNC Sin  &n>    == real
+$  <FUNC Cos  &n>    == real
+$  <FUNC Tan  &n>    == real
+$  <FUNC Asin &n>    == real
+$  <FUNC Acos &n>    == real
+$  <FUNC Atan &n>    == real
+$  <FUNC Sinh &n>    == real
+$  <FUNC Cosh &n>    == real
+$  <FUNC Tanh &n>    == real
+
+GENERAL OBJECT MANAGEMENT --------------------------------------------
+
+$  mode :- EMPTY | CHAR | CHAIN | STRING | VECTOR |
+           MASK  | REAL | FUNC  | TABLE  | FILEIO | VIDEO
+
+$  <MODE &int>      == MASK
+$  <MODE &real>     == REAL
+$  <MODE &word>     == STRING
+$  <MODE char>      == CHAR
+$  <MODE &(e)>      == CHAIN
+$  <MODE &table>    == TABLE
+$  <MODE &func>     == FUNC
+$  <MODE &file>     == FILEIO
+$  <MODE &video>    == VIDEO
+
+$  <CONST var>     ==  F
+$  <CONST val>     ==  T
+
+$  <NEW>            == var , <MODE var> = EMPTY
+$  <NEW word>       == var , <MODE var> = EMPTY
+   Word becomes a name of this var symbol
+
+$  <MAKE mode>     == var     , <MODE var>  = mode
+$* <MAKE mode var1>   == var1 , <MODE var1> = mode
+
+$* <MOVE var.S var.D> == var.D
+$* <COPY var.S var.D> == var.D
+
+$  <REFCOUNT var>  == int
+
+NB: An asterisc after $ marks functions with side effects.
+
+CONTAINER MANAGEMENT ---------------------------------------------------
+
+$  con :- int | word | (e) | vector | func | table
+
+$  <NEW>            == var , <MODE var> = EMPTY
+$  <NEW word>       == var , <MODE var> = EMPTY
+
+$* <SET var &t>     == var
+
+$  <GET  &t>        == val
+
+$  <GETV &con>      == e
+$* <SETV *con e>    == *con
+$  <SETV  con e>    == con1
+
+$  <GETN &con int>  == t
+$* <SETN *con int t>       == *con
+$  <SETN  con int t>       == con1
+
+$  <GETS &con int1 int2>   == e
+$* <SETS *con int1 int2 e> == *con
+$  <SETS  con int1 int2 e> == con1
+
+$  <POS  &con tV>          == int-list
+
+$* <SHIFT var int.O int.S> == var
+$  <SHIFT con int.O int.S> == con1
+
+$  cons = | con cons
+
+$* <CONCAT var cons> == var
+$  <CONCAT con cons> == con1
+
+Note: function CONCAT is not implemented yet
+
+$  <LENCONT &con>       == int
+
+INPUT/OUTPUT -----------------------------------------------------------
+
+$  chan = *file | *slide | *video
+
+$  chars = | char chars
+$  chantbl = chan | (chan *table)
+
+$* <READ_CHAR! chan>      == char
+$* <READ_LINE! chan>      == chars
+$* <PRINT!     chantbl>   ==
+$* <PRINTLN!   chantbl>   ==
+$* <READ!      chantbl>   == t |
+$* <READLN!    chantbl>   == e
+$* <WRITE!     chantbl e> ==
+$* <WRITELN!   chantbl e> ==
+$* <EOF chan>             == T | F
+
+READ[LN]!, WRITE[LN]!, are used to i/o refal expressions.
+
+$   iomode = R | W | A | BR | BW | BA
+
+$* <OPEN var.Chan word.Filename iomode> == var.Chan | $FAIL
+$* <ERASE word.Filename> ==
+$* <CLOSE var>  ==
+$  <TO_CHARS e> == chars
+$* <ENCODE *table e> == chars
+$* <DECODE *table chars> == e
+
+$  *STDIN, *STDOUT, *STDERR, *STDLOAD - standard channels
+
+MISCELANEOUS ------------------------------------------------------------
+
+$  <COMPARE t1 t2>   == '<' | '=' | '>'
+
+$  <FIRST int e> == (eX) eY , e=eX eY, <LENGTN eX> == int or less
+$  <LAST  int e> == (eX) eY , e=eX eY, <LENGTH eY> == int or less
+
+
+$  <LENGTH e> == int
+
+$  <TYPE letter e> == 'L'
+$  <TYPE lower e>  == 'l'
+$  <TYPE digit e>  == 'D'
+$  <TYPE char e>   == 'O'
+$  <TYPE word e>   == 'F'
+$  <TYPE var e>    == 'R'
+$  <TYPE (e) e>    == 'B'
+$  <TYPE >         == '*'
+
+$  <CHR int> == char
+$  <ORD char> == int
+$  <LOWER eA> == eB
+$  <UPPER eA> == eB
+$  <EXIT >
+$  <EXIT int>
+$  <EXITCD int>
+$  <APPLY *fun e.Arg> == e.Res
+$  <GETENV word> == chars
+$  *STDARG - a list of arguments, each being (chars)
+$  <TIME>            == 'DD MMM YYYY HH.MM.SS'
+$  <TIME_ELAPSED>    == int
+
+$  <STEP>     == int
+$  <STEP int> ==
+
+$  <BREAK>            ==
+$  <TESTMEM>          == int
+
+TABLE MANAGEMENT --------------------------------------------------------
+
+$  op = 'O' | 'N' | 'U' | 'D'
+$  pairs = | t.Name t.Value pairs
+
+$* <MAKE TABLE var> == var
+$* <TABLE_VALUE table op t.Name> == t.Value |
+$* <TABLE_NAME  table op t.Value> == t.Name |
+$  <TABLE_LIST table> == pairs
+$* <TABLE_LINK table pairs> ==
+
+Mnemonics for op are: Old, New, Update, Delete.
+
+The algorithm for TABLE_VALUE/TABLE_NAME:
+1. Seek for the given t.Name/t.Value.
+2. N,D: Delete the item found.
+3. N,U: Create new item if it is absent.
+4. Result is t.Value/t.Name if present, otherwise - empty.
+
+EVENT MANAGEMENT --------------------------------------------------------
+
+$  onoff     :- On | Off
+$  event     :- kbdevent | mousevent | None
+$  kbdevent  :- Kbd kbdcode scancode
+$  kbdcode   :- ASCII char | Ctrl int | Func int
+$  mousevent :- Mouse Drag | Mouse Left oper | Mouse Right oper
+$  oper      :- Press | Release | Double
+
+
+$* <MOUSE  Init>                    ==
+$* <MOUSE  Done>                    ==
+$* <MOUSE  Get>                     ==  (event) int.ModSet intX intY
+$* <MOUSE  Check>                   ==  (event) int.ModSet intX intY
+$  <MOUSE  Drag>                    ==  onoff
+$* <MOUSE  Drag  onoff>             ==
+$  <MOUSE  KbdMouse>                ==  onoff
+$* <MOUSE  KbdMouse  onoff>         ==
+$  <MOUSE  Pointer>                 ==  onoff
+$* <MOUSE  Pointer  onoff>          ==
+$* <MOUSE  MovePointer  intX  intY> ==
+
+Command Get waits event whereas Check does not.
+Drag enables detection of moving mouse.
+KbdMouse enables emulation mouse comands via the keyboard
+Pointer shows the mouse pointer on the screen.
+The pointer shows if the number of On's exceeds the number of Off's.
+X,Y is the position of the mouse pointer in screen coordinates.
+ModSet is a 8-bit indicator of the set of modifiers pressed.
+
+$  b = '0' | '1'
+
+<GETV int.ModSet> == b.LeftShift b.RightShift b.LeftCtrl b.RightCtrl
+                     b.LeftAlt   b.RightAlt   b.CapsLock b.NumLock                           */
+
+
+SCREEN OPERATION --------------------------------------------------------
+
+NB: Following functions for textual screen i/o
+    are not present in standard configuration
+    (for more details see the file RB_SLIDE.DOC)
+
+$  key = char | int
+
+$  <KEY_READ>       == int
+$  <KEY_UNREAD key> ==
+$  <KEY_PRESSED>    == T | F
+
+$  brect :- (intX intY intW intH)
+$  erect :- (0 0 0 0)
+$  rect  :- slide | brect
+$  rects :- | rect rects
+$  corr
+$  attr
+
+$  <RECT_GET rect> == brect
+$* <RECT_SET slide rect> ==
+$  <RECT_INTRS rects> == brect
+$  <RECT_UNION rects> == brect
+$  <RECT_SUBTR rect1>       == rect1 erect.Left erect.Right erect.Bot
+$  <RECT_SUBTR rect1 rect2> == brect.Top brect.Left brect.Right brect.Bot
+$  <RECT_EMPTY rect> == T | F
+$* <MAKE_SLIDE var rect> == var
+$* <MAKE_SUBSLIDE var slide> == var
+$* <MAKE_SUBSLIDE var slide rect> == var
+$* <SLIDE_FILL slide char attr [rect] ==
+$* <SLIDE_CORR slide corr attr [rect] ==
+$* <SLIDE_COPY slide1 slide2 [rect] ==
+$* <SLIDE_SWAP slide1 slide2 [rect] ==
+$  <SLIDE_POS_GET slide> == intX intY
+$* <SLIDE_POS_SET slide intX intY> ==
+$  <SLIDE_ATTR_GET slide> == attr
+$* <SLIDE_ATTR_SET slide attr> ==
+$  <SLIDE_CURS_GET slide> == intX intY int.Type
+$* <SLIDE_CURS_SET slide intX intY int.Type> ==
+$  <SLIDE_OWNER_GET slide> == slide.Owner intX intY
+$* <SLIDE_XY_SET slide intX intY> ==
+$* <MAKE_SCREEN var int.Page> == var
+$* <SCREEN_SHOW scr> ==
+
+GRAPHICS----------------------------------------------------------------
+
+see the file VIDEO.HLP
+

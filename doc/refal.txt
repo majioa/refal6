@@ -1,0 +1,578 @@
+              SYNTAX AND SEMANTICS OF REFAL-6
+              ===============================
+                  (C) Arkady Klimov, 1993
+
+Function definition
+-------------------
+
+NOTATIONS
+
+    The syntax definition below uses the conventional Backus-Naur
+    formalism with the following extensions:
+
+        [ ] encloses optional parts;
+        * after nonterminal implies its repetition 0 or more times;
+        % stands for either p (pattern) or r (result) or o (object)
+          for each rule independently.
+
+
+SYNTAX
+
+    funcdef = funcname p-path .
+    tail = ":" p-path | "::" p-path | "," r-path | "=" r-path | ";" .
+    %-path = %-action tail .
+    %-action = ["#"] %-form .
+    %-form = %-expression | %-block .
+    %-block = "{" %-path* "}" .
+    %-expression = %-term* .
+    o-term = symbol | "(" o-expression ")"
+    p-term = symbol | "(" p-expression ")" | variable .
+    r-term = symbol | "(" r-expression ")" | variable | "<" r-expression ">" .
+    symbol = character-symbol | word-symbol | number-symbol | named-symbol .
+
+
+SYNTAX SUGAR
+
+    1. The ";" enclosing non-empty path may be omitted before the "}".
+
+    2. The asterisc prefixing the named symbol (see below) can be omitted
+    when it follows the sign "<" immediately.
+
+
+LEXICAL ELEMENTS
+
+*** Character symbol
+
+    Character is an ASCII-coded symbol. Character is represented in Refal
+    as an ASCII-symbol enclosed in quotes, e.g. 'A', '+', etc.
+    Some special characters have special representation in Refal
+    (like in C):
+
+        New line                 '\n'
+        Horizontal tab           '\t'
+        Vertical tab             '\v'
+        Backspace                '\b'
+        Carriage return          '\r'
+        Form feed                '\f'
+        Back slash               '\\'
+        Quote                    '\''
+        Doublequote              '\"'
+
+        Decimal ASCII-code       '\nnn'
+        Hexadecimal ASCII-code   '\nnn'
+            where n is a decimal or hexadecimal digit.
+
+    Several successive character symbols can be put together inside a
+    unique pair of quotes, e.g. 'A+B\n' is the same as 'A' '+' 'B' '\n'.
+
+*** Word symbol
+
+    Word is a symbol formed of a sequence of characters, enclosed
+    in doublequotes.
+    Above convention on special characters is valid inside doublequotes.
+    Word starting with upper case letter (and signs "!" and "?")
+    and formed only of letters, digits and signs "_", "-", "!", "?"
+    can be written without enclosing doublequotes.
+    The same is valid for the following words
+              +  -  *  /  %  ^  .  &  |  ~
+    However the blank is always necessary after the words
+              +  -  *  &
+    Examples of words: "<=>" "\t\t\t" PRINT! .
+
+*** Number symbol
+
+    Number is a model of mathematical concept of a (signed) integer.
+    It can have either decimal or hexadecimal representation,
+    i.e. [-]nn...n or [-]0xnn...n, where n is an arbitrary
+    decimal or hexadecimal digit respectively.
+    Examples of numbers:  0 -10 9876543210 0x10 -0xff .
+
+*** Real number
+
+    Reals are implemented as usual floating point numbers. It has the
+    form [-]nn...n[.[nn...n]] [e [+/-] nn..n]
+    where either dot or e must be present. Here e is either e or E.
+
+*** Named symbol
+
+    Named symbol is a symbol which is represented by its name rather
+    than by itself. It is used to represent symbols which have no
+    proper representation, e.g. the so-called location symbols
+    (or references to objects). Functions are a kind of such symbols.
+    Words are used as names, and the symbol named A is represented as *A,
+    i.e. the name prefixed by an asterisc.
+
+*** Variable
+
+    variable = explicitly-typed-variable | implicitly-typed-variable .
+    explicitly-typed-variable = type [["."] index] .
+    implicitly-typed-variable = first-letter letter-or-digit .
+    type = "s" | "t" | "e" .
+    index = letter-or-digit letter-or-digit*.
+    letter-or-digit = letter |  digit | "-" | "_" | "!" | "?" .
+    first-letter =  any lower case letter but "e", "s", "t" .
+
+    Point inside the variable is of no significance, i.e. s.11 is
+    completely equivalent to s11.
+    Any implicitly typed variable var is equivalent to t.var .
+
+*** Keyword
+
+    keyword = "$ENTRY" | "$EXTERN" | "$FUNC" | "$BOX" | "$STRING" |
+              "$VECTOR" | "$CHANNEL" | "$TABLE" |
+              "#" | "," | ":" | "::" | ":" | "=" | .
+
+*** Comment
+
+    A part of line starting with // to the end of line is a comment.
+    A part of line starting with -- to the end of line is a comment.
+    A part of text starting with /* and ending with */ is a comment.
+    A comment should not split any lexical element.
+
+*** Using blanks
+
+    Each two adjacent lexical elements can be separated by the blank.
+
+    Each two adjacent ground elements described here may be put
+    together without a separating blank, provided that the leftmost one
+    can be picked unambiguously.
+
+    The blank mentioned above can be either Space or Tab or Line Feed or
+    Form Feed character or comment.
+
+
+CONVENTIONAL DESIGNATIONS:
+
+    Below we are going to use the following designations.
+
+    Semantic domains:
+
+        OE:  o-expression, object expression.
+        VAR: variable.
+        VAL: OE U { $fail }.
+        ENV: VAR -> OE , or finite subsets of (VAR x OE),
+             such that the value of each s-variable is a symbol,
+             the value of each t-variable is a term,
+             and the value of each e-variable is an arbitrary expression.
+        STATE: a global state of the computing system (including the
+               external world).
+
+        There is also a unique semantic domain of the same name for each
+        nonterminal of the grammar above.
+
+    Following names are used below to denote arbitrary elements of
+    these domains:
+
+        Ac: action
+        Tl: tail
+        Env: ENV
+        St: STATE
+        Oe: OE
+        Val: VAL
+        Var: VAR
+        Re: r-expression
+        Rt: r-term
+        Pe: p-expression
+        $empty is a notation for the empty (object) expression
+
+CONTEXT RESTRICTIONS:
+
+    Each variable without an index is regarded as if it has a unique index.
+    Under this assumption the following conditions should be valid.
+
+    The occurrence of a variable is called a definition, if it enters
+    p-expression Pe and if it is not defined in the context.
+    The scope of a definition occurred in Pe (i.e. the part of text
+    the variable is regarded to be defined in) is the union of
+    (1) the rest of the Pe to the right of the definition and
+    (2) the tail Tl, which follows Pe in the p-path Pe Tl,
+    provided that such path exists in the parse tree
+    (i.e. Pe is not prefixed by "#").
+
+    Each occurrence of a variable must either be a definition or enter
+    the context this variable is defined in.
+
+    Two variables with same indices and different types should not
+    be defined in the same context.
+
+SEMANTICS:
+
+    To define semantics we use the Natural Semantics method.
+    Below a set of assertions is presented, each being either
+    a formula (axiom) or a production rule of the form:
+
+             formula1
+             formula2
+             ...
+             -----------
+             formula
+
+    Each formula above the horizontal line is an antecedent of the rule
+    and the formula under the line is a consequent of the rule.
+
+    Each formula has one of the following seven forms. To obtain the
+    proper formula one should replace metavariables in a certain form
+    by the appropriate concrete values.
+
+(R)     St,Env      |- Re       => St',Val
+
+    In the global state St and environment Env the result
+    expression Re yields the new state St' and the value Val.
+
+(F)     St          |- Fun, Oe  => St', Val'
+
+    In the global state St the application of function Fun to the
+    object expression Oe yields the new state St' and the value Val'.
+
+(PM)    Env         |- Oe : Pe  => Env-list
+
+    In the environment Env, the pattern P being matched against the
+    object expression Oe yields the sequence of new environments
+    [Env1, ... ], each being the extension for Env.
+
+(A)     St,Env,Val  |- Ac       => St',Val'
+
+    In the global state St, with the environment Env and the value Val
+    the action Ac yields the new state St', and a new value Val'.
+
+(T)     St,Env,Val  |-- Tl      => St',Val'
+
+    In the global state St, with the environment Env and the value Val
+    the tail Tl yields the new state St', and a new value Val'.
+
+(P)     St,Env,Val  |-- Pa      => St',Val'
+
+    In the global state St, with the environment Env and the value Val
+    the path Pa yields the new state St', and a new value Val'.
+
+(TT)    St,Env-list,Val ||- Tl  => St',Val'
+
+    (TT) is similar to (T) except that Env-list is not a single
+    environment but a list of environments, produced by (PM).
+
+    The sign => splits each formula into the source part and the result part.
+    Each formula expresses the fact that given the concrete values of
+    metavariables of the source part one can initiate the evaluation which
+    eventually would terminate giving as results the values of metavariables
+    of the result part.
+
+    The sign like |- in the source parts is used to separate the elements
+    of the context from the main source values.
+
+    Sometimes instead of antecedent formula we write sentence
+    in the natural language. Some additional constraints or definitions
+    can also be added to the right of the rule.
+
+    Rules are used to derive new formulae from axioms and already
+    derived ones. The set of all derivable formulae describes
+    the correct results of all finite computations in Refal.
+
+    Assertions are grouped according to the form of their target
+    formula, i.e. the consequent of the rule or the axiom itself.
+    Inside each group assertions are numbered so that the first number
+    enumerates subgroups of rules with equal source parts of their target
+    forms, whereas the second number enumerates rules within a subgroup.
+
+=======================================================================
+
+Evaluation of result expression
+
+(R.1)   St, Env |- $empty => St, $empty
+
+        St, Env |- Rt => St', $fail
+(R.2.1) ------------------------------
+        St, Env |- Rt Re => St', $fail
+
+        St, Env |- Rt => St', Oe'
+        St', Env |- Re => St'', $fail
+(R.2.2) -------------------------------
+        St, Env |- Rt Re => St'', $fail
+
+        St, Env |- Rt => St', Oe'
+        St', Env |- Re => St'', Oe''
+(R.2.3) ----------------------------------
+        St, Env |- Rt Re => St'', Oe' Oe''
+
+(R.3)   St, Env |- Os => St, Os
+
+        Oe is the value of Var in Env
+(R.4)   -----------------------------
+        St, Env |- Var => St, Oe
+
+        St, Env |- Re => St', $fail
+(R.5.1) -----------------------------
+        St, Env |- (Re) => St', $fail
+
+        St, Env |- Re => St', Oe
+(R.5.2) ---------------------------
+        St, Env |- (Re) => St', (Oe)
+
+        St, Env |- Re => St', $fail
+(R.6.1) -----------------------------------
+        St, Env |- "<" Re ">" => St', $fail
+
+        St, Env |- Re => St', Fs Oe
+        Fs is a function symbol
+        St' |- Fs, Oe => St'' Val
+(R.6.2) ----------------------------------
+        St, Env |- "<" Re ">" => St'', Val
+
+        St, Env |- Re => St', Ot Oe
+        Ot is not a function symbol
+        St' |- AO, Ot Oe => St'', Val
+        AO is a function named "APPLY_OBJECT"
+(R.6.3) -------------------------------------
+        St, Env |- "<" Re ">" => St'', Val
+
+
+=======================================================================
+
+Function call evaluation
+
+        p-Pa is p-path of the definition of the function Fs
+        St, [], Oe |-- p-Pa => St', Val'
+(F.1)   ----------------------------------------------------
+        St |- Fs, Oe => St', Val'
+
+        Fs is a standard function, which being applied to Oe
+          in the state St yields the value Val' and the state St'
+(F.2)   ---------------------------------------------------------
+        St |- Fs, Oe => St', Val'
+
+=======================================================================
+
+Pattern matching
+
+        Env <= EnvK , K = 1,2, ..., N, i.e. each EnvK extends Env.
+        EnvK//Pe = Oe, i.e. substitution of values from EnvK to Pe yields Oe.
+        Dom(EnvK) = { Var1, Var2, ..., VarM } , which is sorted so that
+          (VarI occurs primarily in Pe earlier than VarJ) => I<J.
+        K<L => EnvK << EnvL, where Env's are compared lexicographically
+          (granted that expressions are compared by their lengths in terms)
+(PM.1)  ---------------------------------------------------------------------
+        Env |- Oe : Pe => [ Env1, Env2, ..., EnvN ]
+
+=======================================================================
+
+Evaluation of action
+
+        St, Env, Oe |- Ac => St', Val'
+(A.1)   ----------------------------------- , #(Oe)=$fail, #($fail)=$empty
+        St, Env, Oe |- # Ac => St', #(Val')
+
+        Env |- Oe : Pe => [ ]
+(A.2.1) ------------------------------
+        St, Env, Oe |- Pe => St, $fail
+
+        Env |- Oe : Pe => [Env]^Env-list
+(A.2.2) --------------------------------
+        St, Env, Oe |- Pe => St, $empty
+
+        St, Env |- Re => St', Val'
+(A.3)   ------------------------------
+        St, Env, Oe |- Re => St', Val'
+
+(A.4)   St, Env, Oe |- "{" "}" => St, $fail
+
+        St, Env, Oe |-- Pa => St', $fail
+        St', Env, Oe |- "{" Pa-list "}" => St'', Val''
+(A.5.1) ------------------------------------------------
+        St, Env, Oe |- "{" Pa Pa-list "}" => St'', Val''
+
+        St, Env, Oe |-- Pa => St', Oe'
+(A.5.2) ---------------------------------------------
+        St, Env, Oe |- "{" Pa Pa-list "}" => St', Oe'
+
+=======================================================================
+
+Evaluation of path
+
+        Env |- Oe : Pe => Env-list
+        St, Env-list, Oe ||- Tl => St', Val'
+(P.1)   ------------------------------------
+        St, Env, Oe |-- Pe Tl => St', Val'
+
+        St , Env, Oe |- p-Ac => St', Val'
+        St', Env, Val' |-- Tl => St'', Val''
+(P.2)   -------------------------------------- , p-Ac is not a Pe
+        St, Env, Oe |-- p-Ac Tl => St'', Val''
+
+        St , Env, Oe |- r-Ac => St', Val'
+        St', Env, Val' |-- Tl => St'', Val''
+(P.3)   --------------------------------------
+        St, Env, Oe |-- r-Ac Tl => St'', Val''
+
+=======================================================================
+
+Evaluation of tail
+
+(T.1)   St, Env, $fail |-- Tl => St, $fail
+
+(T.2)   St, Env, Oe |-- ";" => St, Oe
+
+        St, Env, Oe |-- p-Pa => St', Val'
+(T.3)   ------------------------------------------
+        St, Env, Oe |-- ":" p-Pa => St', Val'
+
+        St , Env, Oe |-- r-Pa => St', Val'
+(T.4)   -----------------------------------------
+        St, Env, Oe |-- "," r-Pa => St', Val'
+
+        Env |- Oe : Pe => [Env']^Env-list
+        St, Env', Oe |-- Tl => St', Val'
+(T.5)   ----------------------------------------
+        St, Env, Oe |-- "::" Pe Tl => St', Val'
+
+        St , Env, Oe |- p-Ac => St', Oe'
+        St', Env, Oe' |-- Tl => St'', Val''
+(T.6)   -----------------------------------------   , p-Ac is not a Pe
+        St, Env, Oe |-- "::" p-Ac Tl => St'', Val''
+
+        St , Env, Oe |- r-Ac => St', Oe'
+        St', Env, Oe' |-- Tl => St'', Oe''
+(T.7)   -----------------------------------------
+        St, Env, Oe |-- "=" r-Ac Tl => St'', Oe''
+
+=======================================================================
+
+Selection of variant from the Env-list produced by pattern matcher PM
+
+(TT.1)   St, [], Oe ||- Tl => St', $fail
+
+         St, Env, Oe |-- Tl => St', Oe'
+(TT.2.1) ------------------------------------------
+         St, [Env]^Env-list, Oe ||- Tl => St', Oe'
+
+         St , Env, Oe |-- Tl => St', $fail
+         St', Env-list, Oe ||- Tl => St'', Val
+(TT.2.2) ------------------------------------------
+         St, [Env]^Env-list, Oe ||- Tl => St'', Val
+
+===================================================================
+
+Comment
+
+    1. Any situation the semantics is undefined in
+    gives rise to the appropriate error message.
+
+    2. The function APPLY_OBJECT mentioned in (R.6.3) is defined
+    currently so that
+        a) <(eA) eB> evaluates as <eA eB>;
+        b) if t.Loc is any location symbol, then <MakeObject t.Loc tF eC>
+    yields tO as a result and each further call like <tO eM> evaluates
+    as <tF tO eC eM>.
+
+======================================================================
+
+Object declaration and modules
+------------------------------
+
+SYNTAX
+
+    progfile = directive*
+    directive = "$EXTERN" extnamelist ";" |
+                 typename objdeflist ";" |
+                 $EXEC    objdeflist ";" |
+                 prefix   funcdef "." |
+                 $MODULE  directive* $END.
+    extnamelist = extname | extname "," extnamelist .
+    extname = name | name "(" name ")" .
+    objdeflist = objdef | objdef "," objdeflist .
+    objdef = name r-expression .
+    name = word-symbol .
+    prefix = $ENTRY | [$FUNC] .
+
+Note: the rest of line after the keywords $MODULE and $END is a comment.
+
+LEXICAL ELEMENTS
+
+    typename = "$" name .
+
+    Here "$" and name should not be separated by a blank.
+
+SEMANTICS
+
+     A program in Refal consists of several progfiles. Progfiles can
+     split into modules. A progfile itself is treated as a module
+     if it contains $EXTERN or $ENTRY declaration on the top
+     level of module structure.
+     Usually a name declared in a module is accessible only
+     from this module. However, prefix $ENTRY
+     make function name accessible from the outside.
+
+     To be more precise, there is a unique global set of names, which
+     are accessible from everywhere. This set is arranged as a table
+     which specifies the mapping of names (word symbols) to other symbols,
+     which represent references to objects. It is formed by the names
+     of all library functions and all external names of all modules.
+     In particular, the name of $ENTRY function is external.
+     If a function is defined as $ENTRY in several modules only the
+     last definition (according to the module list for loader) remains valid.
+
+     To use a name defined outside the given module the name
+     should be declared in this module as $EXTERN. The name specified
+     as $EXTERN may be also defined in this module (and this is another
+     way to make the defined name accessible from the outside).
+
+     All library functions are predeclared as $EXTERN by default.
+     However any library function can be redefined inside the module.
+     To redefine library function globally one should accompany its
+     definition by the prefix $ENTRY, or specify its name explicitly as
+     $EXTERN.
+
+     Remind that a function or any other object can be used only via
+     its reference symbol. A reference symbol can be written only by
+     its name. Thereby it is called named symbol. The name is a word,
+     and the symbol named by the word A is denoted as *A, i.e. its
+     name prefixed by the asterisc. The asterisc can be omitted when
+     it follows the sign "<" immediately, i.e. without a separating blank.
+
+     When a name X in an extnamelist is followed by another name Y
+     in parentheses, then Y is regarded as the external equivalent of the
+     internal name X.
+
+     An object declaration introduces a new reference symbol named by the
+     given name. A reference symbol from the moment of its creation
+     is associated (refers to) a certain constant location. This location
+     can be occupied by variable entity which may change its state from
+     time to time.
+     For each named symbol thus defined the folowing evaluation,
+     called initialization, is activated:
+
+                 <Funname *Objname r-expression>
+
+     where r-expression called initialization expression is taken
+     from the Objname's definition. The initialization is evaluated
+     during the loading of the program. Hence, only functions
+     defined earlier or in the current module can be invoked during
+     the evaluation of the initialization. This concerns the evaluation
+     of r-expression as well as the function Funname itself.
+
+     There are following built-in typenames: $BOX, $STRING,
+     $VECTOR, $MASK, $TABLE, $CHANNEL and $EMPTY.
+     The first five of them are called 'containers'. Any object
+     of these types contains an object expression inside which can
+     vary in time. Its initialization expression is taken
+     as the initial content. For further use of these symbols
+     consult the REFLIB.HLP file. The initialization expression
+     for any symbol of type $CHANNEL or $EMPTY should be empty.
+
+     The user may define his or her own types as usual Refal functions
+     of the same name which would provide the desirable initialization
+     of a location symbol.
+
+     The $EXTERN symbol which is not defined anywhere is created
+     as symbol of type $EMPTY.
+
+     To run the program means to execute all its directives.
+     This process is usually referred to as loading.
+     To execute a function definition means to define the function.
+     The execution of object definition generally implies the
+     evaluation of its r-expression, and use the result in creating
+     the object. To execute the directive
+        $EXEC f1 arg1, f2 arg2, ...;
+     means to invoke <f1 arg1> , <f2 arg2>, ... sequentially.
+     The results are ignored. Thus it is a good idea to write in the
+     end of the last module the directive
+        $EXEC MAIN;
+     where MAIN is a function which executes the whole program.

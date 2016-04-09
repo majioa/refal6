@@ -1,0 +1,242 @@
+*    PAGE PRINTING                                            PP.REF
+
+PUTOUT { sC eX = <PRINTLN! sC eX> };
+PROUT { eX = <PRINTLN! *STDOUT eX> };
+CARD { eA = <PRINT! *STDOUT eA> <READ_LINE! *STDIN> };
+GET { sC , <EOF sC> : { F = <READ_LINE! sC>; T = 0 }; };
+
+GO { = <Doall <Skey () <Args 1>>>; };
+
+Args {  sN , <ARG sN> : { =; eA = (eA) <Args <ADD sN 1>>; }};
+
+Plst {
+  = ;
+  (eA) eX = <PROUT eA> <Plst eX> ;
+  };
+
+Skey {
+  (eK) ('/'e1) e2 = <Skey ((<UPPER e1>) eK) e2>;
+  (eK) (e1) e2 = (e1) <Skey (eK) e2>;
+  (eK) = (S eK);
+  };
+
+Doall {
+     tA = <Plst
+("             ***   PAGE PRINTING   ***")
+("Syntax: PP <file> [/q[s]] [/b<num>] [/e<num>] [/p<num>] [/s<num>] [/m<num>]")
+("    /q[s] - stop after each page [/qs - do not skip the paper]")
+("    /c - print contents (each line after empty line)")
+("    /bN, /eM - print from N-th to M-th pages")
+("    /pN - print N lines per page, optionally 66")
+("    /lN - print N symbols per line, optionally 80")
+("    /sN - size of page is N, optionally 72")
+("    /mM - break the page on empty line after which")
+("          there are no more then M, optionally 6, nonempty lines")
+("    /oN - offset from left is N, optionally 0")
+("    /1, /2 - print only odd or only even pages")
+ >;
+   eF tA , <Opt 'F' ('prn') tA> : e.Fname, <OPEN_FILE 4 e.Fname W> : {
+      F = <PROUT 'Can\'t open' e.Fname> ;
+      T = <Do eF tA>;
+   }; };
+
+Do {
+  (eF) eX (eA) = <Job (eF) (eA)> <Do eX (eA)>;
+  (eA) =;
+  };
+
+Job { (eF) tA , <OPEN_FILE 3 eF R> : {
+   F = <PROUT 'Can''t open ' eF> ;
+   T = <Prtxt ((eF) tA) <Pagnum 1 <Pags tA <Inputf tA>>>>;
+}; };
+
+Prtxt { ((eF) tA) eT = <Outpags ((eF) tA)
+       <SelByParity tA <Mkcontns tA eT>> <SelByParity tA <Selpag tA eT>>> };
+
+Inputf { tA , <GET 3> : {
+    0 = ;
+    eL = <Cut tA eL> <Inputf tA> ;
+};  };
+
+Mkcontns { tA eT , <Arg 'C' tA> : {
+    F = ;
+    tZ = <Pagnum "i" <Pags tA <LINE CONTENTS> <LINE > <Contns eT>>> ;
+};  };
+
+Contns {
+    sN (P EMPTY-LINE e1) e2 = <Contns1 sN (P e1) e2> ;
+    sN (P tL e1) e2 = <Contns sN (P e1) e2> ;
+    sN (P) e2 = <Contns e2> ;
+    = ;
+    };
+
+Contns1 {
+    sN (P) e2 = <Contns1 e2> ;
+    sN (P EMPTY-LINE e1) e2 = <Contns1 sN (P e1) e2> ;
+    sN (P tL e1) e2 = <Mkline sN <GETV tL>> <Contns sN (P e1) e2> ;
+    = ;
+    };
+
+Mkline { sN eL = <LINE sN '   'eL> };
+
+Pags  {
+     tA eF , <Line-per-page tA> : tN , <FIRST tN eF> : {
+        (e1 FORM-FEED e2) e3 = (P e1) <Pags tA e2 e3>;
+        (e1) = (P e1) ;
+        (e1) EMPTY-LINE e2 = <Skipemp tA (P e1) e2>;
+        (e1) e2 , <LAST <Maxbot tA> e1> : (e3) e4 ,
+            <Fend e4 ()> : e5 (e6)
+                = <Skipemp tA (P e3 e5) e6 e2> ;
+     }; };
+
+Skipemp {
+   tA (P e1) EMPTY-LINE e2 = <Skipemp tA (P e1) e2> ;
+   tA (P e1) e2 = (P e1) <Pags tA e2>;
+   };
+
+Fend {
+   e1 EMPTY-LINE (e2) = e1 EMPTY-LINE (e2);
+   e1 tA (e2) = <Fend e1 (tA e2)>;
+   (e2) = e2 ();
+};
+
+Pagnum {
+     sN = ;
+     sN tQ eX = sN tQ <Pagnum <Nextnum sN> eX> ;
+     };
+
+Nextnum { sN , <TYPE sN> : {
+   'N' eZ = <ADD sN 1> ;
+   'F' eZ = <SETV sN <GETV sN> 'i'>;
+}; };
+
+SelByParity tA eT = <SelPar <Arg '1' tA> <Arg '2' tA> eT>;
+
+SelPar {
+     F F   eT = eT;
+     t1 t2 sN tP = <SelPar t1 t2 sN tP <Nextnum sN> (P )>;
+     t1 t2 =;
+     t1 t2 sN tP sM tQ eT = <SelP t1 sN tP> <SelP t2 sM tQ> <SelPar t1 t2 eT>;
+     };
+
+SelP {
+   F sN tP =;
+   t1 sN tP = sN tP;
+   };
+
+Selpag {
+     tA = ;
+     tA sN tQ eX , <Pbegin tA> : tB , <Pend tA> : tE , <Sorted tB sN tE> : {
+              T  = sN tQ <Selpag tA eX> ;
+             s1  =       <Selpag tA eX> ;
+     };      };
+
+Outpags {
+ tK = ;
+ tK sN (P eP) eX , tK : ((eF) tA)
+      = <Pause tK> <Ppage 0 tK <Offset tA>
+                PaperOutOn <Title tK sN>
+                PaperOutOff eP
+                >
+        <Outpags tK eX>;
+ };
+
+Title { ((eF) tA) sN =
+  <LINE <Sfile eF> '   ' <Stime> '               ' <Spage eF sN>>
+  EMPTY-LINE EMPTY-LINE;
+};
+
+Ppage {
+   sL tK s.Off = <Skip-foot sL tK> ;
+   sL tK s.Off PaperOutOff eX = <PaperOut Off> <Ppage sL tK s.Off eX>;
+   sL tK s.Off PaperOutOn  eX = <PaperOut On > <Ppage sL tK s.Off eX>;
+   sL tK s.Off EMPTY-LINE eX = <Plino s.Off >
+         <Ppage <ADD sL 1> tK s.Off eX>;
+   sL tK s.Off t.Line eX = <Plino s.Off <GETV t.Line>>
+         <Ppage <ADD sL 1> tK s.Off eX>;
+   };
+
+Plino { s.Off eL = <Plin <Multe s.Off ' '> eL> };
+Plin { eL = <PUTOUT 4 eL> };
+
+Line-per-page { tA = <Numarg 'P' 66   tA> };
+Syms-per-line { tA = <Numarg 'L' 80   tA> };
+Page-size     { tA = <Numarg 'S' 72   tA> };
+Pbegin        { tA = <Numarg 'B' 1    tA> };
+Pend          { tA = <Numarg 'E' 9999 tA> };
+Maxbot        { tA = <Numarg 'M' 6    tA> };
+Offset        { tA = <Numarg 'O' 0    tA> };
+
+Title-size { tA = 3 };
+Sfile { eF =  <Merge <UPPER eF> ('                    ')> };
+Spage { eF sP = <UPPER eF> '-' <TO_CHARS sP> };
+Stime { = <TIME> };
+
+Pause { tK , <Arg 'Q' tK> : {
+  F = ;
+  tZ ,<PROUT 'Press [d] ENTER to skip d lines and print, Ctrl+C to unterrupt'>
+       <CARD > : eY , <TYPE eY> : {
+          'D' sD = <Skip <NUMB sD>> ;
+          eX = ;
+}; };     };
+
+PaperOut { On = '9'; Off = '8' } : sY = <PRINT! 4 '\x1B' sY>;
+
+Skip-foot { sL tK , <Arg 'Q' tK> : {
+      ('S') =;
+      tZ = <Skip <SUB <Page-size tK> sL>>;
+};    };
+
+Skip {
+  0 = ;
+  sN = <Plin> <Skip <SUB sN 1>>;
+  };
+
+Merge {
+  sA eX (sB eY) = sA <Merge eX (eY)> ;
+  eA (eB) = eB;
+  };
+
+Arg {
+    sK (S e1 (sK eA) e2) = (eA);
+    sK (S e1) = F ;
+    sK (e1 tA) = <Arg sK tA>;
+    };
+
+Opt  { sK (eC) tA , <Arg sK tA> : {
+     F = eC ;
+     (eM) = eM ;
+};   };
+
+Numarg { sK sN tA , <Arg sK tA> : {
+     F = sN ;
+     (eM) = <NUMB eM> ;
+};   };
+
+Sorted {
+  s1 = T;
+  s1 s2 e3 , <COMPARE s1 s2> : {
+      '>' = F;
+      sZ = <Sorted s2 e3>;
+};    };
+
+Cut { tA eX , eX : {
+    eY ' ' = <Cut tA eY> ;
+    eY , <FIRST <Syms-per-line tA> eY> : {
+        (e1) = <LINE e1> ;
+        (e1) e2 = <LINE e1> <Cut tA '          ' e2> ;
+};  };  };
+
+Multe {
+  0 eX =;
+  1 eX = eX;
+  sN eX , <DIVMOD sN 2> : sQ sR = <Multe sQ eX eX> <Multe sR eX>;
+  };
+
+LINE {
+   = EMPTY-LINE    ;
+   '\012' = FORM-FEED;
+   e1 = <SETV <MAKE STRING> e1>;
+   };
+
+$EXEC SHIFT *SYSARG 1 -1, GO;

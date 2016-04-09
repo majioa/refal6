@@ -1,0 +1,47 @@
+MAIN  = <Help> <Press-a-key> <License>;
+Help  = <Puts
+" "
+"  YOU ARE WELCOME TO THE REFAL-6 PROGRAMMING SYSTEM "
+"     For compilation use the command: "
+"ri i+c+*go filename"
+"     Use empty filename to get more help on compilation. "
+" "
+"     For execution use the command"
+"ri i{+filename}[+*mainfunc] {Arg} {-{switch}}"
+"     where mainfunc is the name of main entry function"
+"     Available switches are:"
+"     -Tnnn      size of table of elements (in words or pointers)"
+"     -Snnn      size of stack (- \" -)"
+"     -Bnnn      size of block of elements"
+"     -Hnnn      size of heap in kilobytes"
+"     -Wnnn      width for pretty output (by default 79, 0 to disable)"
+"     -t[nnn]    start tracing from step nnn"
+"     -s         print out state info after each input expression"
+"     -r         print out the result of each input expression"
+"     -m         all functions and blocks are fail-less"
+" "
+"     To invoke the dialogue mode to evaluate expressions type in:"
+"ri i{+filename} {-{switch}}"
+"     Then after prompt enter function call (without < and >)"
+"     For more information look through the \'readme\' file"
+> ;
+
+Press-a-key  , <Puts "Press <ENTER> to continue">
+                <READ_LINE! *STDIN> : eZ = ;
+
+License  = <Puts
+"REFAL-6. Copyright (C) 1991 by Institute of Program Systems."
+"Copyright (C) 1992, 1993 by Arkady Klimov."
+"Everyone may use the REFAL-6 without any fee. "
+"Everyone may distribute the Refal-6 together with all source files. "
+"A fee may be taken only for distribution expenses."
+"If you find it worth to incorporate Refal-6 into your application"
+"contact Arkady Klimov (095) 387-71-44, E-mail: ark.klimov@refal.msk.su"
+"for close co-operation."
+ > ;
+
+Puts {
+   sA eX = <PRINTLN! 1 sA> <Puts eX>;
+   =;
+   };
+$EXEC MAIN;

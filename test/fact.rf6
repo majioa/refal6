@@ -1,0 +1,24 @@
+FACT {
+  0 = 1;                       -- fact(0) = 1
+  n = <* <FACT <- n 1>> n>;    -- fact(n) = n*fact(n-1)
+  };
+
+SUM0 {
+  0 = 0;                       -- sum0(0) = 0
+  n = <+ <SUM0 <- n 1>> n>;    -- sum0(n) = n+sum0(n-1)
+  };
+
+-- <PROD a b> => a * (a+1) * ... * b
+
+PROD {
+  a a = a;
+  a b , <COMPARE a b> : '<', </ <+ a b> 2> : m =
+         <* <PROD a m> <PROD <+ m 1> b>>;
+  };
+
+SUM {
+  a a = a;
+  a b , <COMPARE a b> : '<', </ <+ a b> 2> : m =
+         <+ <SUM  a m> <SUM  <+ m 1> b>>;
+  };
+

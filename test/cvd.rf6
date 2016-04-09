@@ -1,0 +1,19 @@
+-- Fast Convert numbers to Decimal
+
+-- Note: d0=10^29 > 2^96 ; lencont(d0^2)==224
+$ENTRY CVD n = <Cvd1 <LENCONT n> 224 n 100000000000000000000000000000>;
+
+Cvd1 l ld n _1 d, <COMPARE l ld> : {
+     '<' = <Cvd2 n _1 d>; -- n < d^2
+     .   = <Cvd1 l <SUB <MUL 2 ld> 32> n _1 d <* d d>>;
+     };
+Cvd2 {
+   n d = <SYMB n>;
+   n _1 d , <DIVMOD n d> : {
+        0  n2 = <Cvd2 n2 _1>;
+        n1 n2 = <Cvd2 n1 _1> <Cvd3 n2 _1>;
+   };   };
+Cvd3 {
+   n = <GETS ('0000000000000000000000000000' <SYMB n>) -30 29>;
+   n _1 d , <DIVMOD n d> : n1 n2 = <Cvd3 n1 _1> <Cvd3 n2 _1>;
+   };

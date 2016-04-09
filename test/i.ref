@@ -1,0 +1,258 @@
+******************************************************
+*  Initial execution file: common functions library  *
+******************************************************
+
+* This function is invoked by <tR eA> when tR is not a function
+APPLY_OBJECT  tR eA , {
+       <GETV tR> : {
+             Object tB eF , / <tB tR eF eA>;
+             tB eF , / <tB eF eA>;
+             , <PRINTLN! *STDERR "Function " tR " is undefined"> , / {};
+             };
+       <SEND tR eA>;
+       };
+Spec  tF eA = <tF eA>;
+MakeObject t.Ref t.BaseObj e.FixArg
+            = <SETV <MAKE CHAIN t.Ref> Object t.BaseObj e.FixArg>;
+
+* <Foldr f n1 n2 ... a> == <f n1 <f n2 ... a > >
+Foldr {
+   tf       ta = ta;
+   tf tn em ta = <tf tn <Foldr tf em ta>>;
+   };
+
+* <Map f n1 n2 ... > == <f n1> <f n2> ...
+Map {
+   tf tn em = <tf tn> <Map tf em>;
+   tf       =;
+   };
+
+I     e;
+K     tx ey = tx;
+
+*  Predicates: the result is either $FAIL or Empty
+">"  ta tb , <COMPARE ta tb> : '>' = ;
+"="  ta tb , <COMPARE ta tb> : '=' = ;
+"<"  ta tb , <COMPARE ta tb> : '<' = ;
+">=" ta tb , <COMPARE ta tb> : #'<' = ;
+"<=" ta tb , <COMPARE ta tb> : #'>' = ;
+
+POW {
+   0 sx = 1;
+   1 sx = sx;
+   sn sx = <DIVMOD sn 2> : sq sr
+         = <POW sq sx> : sp
+         = <MUL <POW sr sx> <MUL sp sp>>;
+   };
+
+* Input / output for standard channels
+READ       = <READ!   *STDIN>;
+READLN     = <READLN! *STDIN>;
+READ_CHAR  = <READ_CHAR! *STDIN>;
+READ_LINE  = <READ_LINE! *STDIN>;
+WRITE   eA = <WRITE!   *STDOUT eA>;
+WRITELN eA = <WRITELN! *STDOUT eA>;
+PRINT   eA = <PRINT!   *STDOUT eA>;
+PRINTLN eA = <PRINTLN! *STDOUT eA>;
+OPEN  sC eA sM , {
+      <OPEN_FILE sC <TO_CHARS eA> sM> : #F = sC;
+      <PRINTLN! *STDERR "File " eA " not found"> , {};
+      };
+CLOSE sX       , <CLOSE_CHANNEL sX>;
+SWAP sV eX = <GTR sV> <WTR sV eX>;
+APPEND tV eX = <SETS tV -1 <LENGTH eX> eX>;
+
+**************************************************************
+* Functions to support module structure                      *
+**************************************************************
+
+* <BlockBegin X1 ... XN> - the 1st line of block, each Xi being external name
+BlockBegin e.NameList = <MOVE *SYSTABLE <NEW>>:s.OldSysTable,
+      <TABLE_LINK <MAKE TABLE *SYSTABLE>
+              OLDSYSTABLE s.OldSysTable
+              <ModGenList s.OldSysTable e.NameList BlockBegin BlockEnd>
+              >;
+
+* This finction should be private
+ ModGenList {
+   sT = ;
+   sT sN      eY = sN <TABLE_VALUE sT 'U' sN> <ModGenList sT eY>;
+   sT (sX sN) eY = sN <TABLE_VALUE sT 'U' sX> <ModGenList sT eY>;
+   };
+
+* <BlockEnd> - the last line of block.
+
+BlockEnd eX = <TABLE_VALUE *SYSTABLE 'O' OLDSYSTABLE> : s.Oldt ,
+              <TABLE_VALUE *SYSTABLE 'O' MU> : {
+                 sm = <TABLE_VALUE *SYSTABLE 'U' THISTABLE> : st
+                    = <COPY *MU sm> = <SETN sm <POS sm *SYSID> st>;
+                 =;
+                 } =
+              <TABLE_VALUE *SYSTABLE 'O' THISTABLE> : {
+                 st = <MOVE *SYSTABLE st>;
+                 =;
+                 } =
+              <MOVE s.Oldt *SYSTABLE> = ;
+
+
+MU  sF eA , <<TABLE_VALUE *SYSID 'U' sF> eA>;
+
+***************************************************************
+* Functions to support load loop with INCLUDE/LOAD facility   *
+***************************************************************
+$MODULE INCLUDE_LOAD;
+
+$BOX SysChans;
+$STRING LOADNAME;
+$EXTERN Map,I,OPEN,CLOSE,APPEND,LOADNAME;
+
+$CHANNEL STDTMP;
+$ENTRY Save tP tV = <OPEN *STDTMP <GETENV TMP> <TO_CHARS tP> W>
+             = <WRITE! *STDTMP tV> <CLOSE *STDTMP>;
+$ENTRY UnSave tP , <OPEN *STDTMP <GETENV TMP> <TO_CHARS tP> R>
+             = <READ! *STDTMP> <CLOSE *STDTMP>;
+
+* <InLoop t.Prompt-Fun t.Result-Manager>
+InLoop  tP tR , <EOF *STDLOAD> : {
+   F = <tP> <tR <READLN! *STDLOAD *SYSTABLE>> <InLoop tP tR>;
+   T = <GETV *SysChans> : {
+       sC eX = <MOVE sC *STDLOAD> <SETV *SysChans eX> = <InLoop tP tR>;
+       = <EndOfSession>;
+   };  };
+$ENTRY EndOfSession =;
+
+* <Input t.Prompt-Fun t.Result-Manager s.FileName>
+$ENTRY Input tP tR sN, <SET *LOADNAME sN> , {
+*         sN : CON = <COPY *STDIN *STDLOAD> = <InLoop tP tR>;
+          <OPEN *STDLOAD sN R> = <InLoop tP tR>;
+          };
+
+*  <INCLUDE "filename.ext"> - a pattern for include line
+$ENTRY INCLUDE sN = <MOVE *STDLOAD <NEW>> : sC = {
+         <OPEN *STDLOAD sN R> = <SETV *SysChans sC <GETV *SysChans>> =;
+         <MOVE sC *STDLOAD> =;
+         };
+
+* Convert name sum to name list
+NameSum {
+    '+' e1 = <NameSum e1>;
+    e1 '+' e2 = <SETV X e1> <NameSum e2>;
+    e1 = <SETV X e1>;
+    };
+
+* Extract non-letter symbol
+NormParam sF, <MODE sF> : STRING, <TYPE <UPPER <GETV sF>>> : {
+   'O' sd ex = sd <SETV X ex>;
+    sm ex = <SETV X ex>;
+   };
+
+NormName sn = <SETV X <LOWER <FileExt "rex" <GETV sn>>>>;
+$ENTRY FileExt {
+    st e1 '\\' e2 = e1 '\\' <FileExt st e2>;
+    st e1 '/' e2 = e1 '/' <FileExt st e2>;
+    st e1 '.' e2 = e1 '.' e2;
+    st e1 = e1 '.' <GETV st>;
+    };
+
+* Load == Include quietly
+$ENTRY LOAD e.NameList =
+          <MOVE *STDLOAD  <NEW>> : sC ,
+          <MOVE *SysChans <NEW>> : sS ,
+             { <Map *LoadFile e.NameList>; ; } : eR,
+          <MOVE sC *STDLOAD>
+          <MOVE sS *SysChans>
+             = eR;
+
+$EXTERN MODTABLE;
+$TABLE  MODTABLE;
+
+LoadFile sN , <NormParam sN> : {
+   '*' sn = <ActPrint sn>; /* metasymbol in UNIX shell */
+   '@' sn = <ActPrint sn>; /* use it in UNIX shell */
+   '!' sn , <LoadMod *WRITELN <NormName sn>>; /* metasymbol in UNIX shell */
+   '^' sn , <LoadMod *WRITELN <NormName sn>>; /* use it in UNIX shell */
+   sn     , <LoadMod *I       <NormName sn>>;
+   ez ;
+   };
+LoadMod tR sn , <APPEND <TABLE_VALUE *MODTABLE 'U' sn> <Input *I tR sn>>;
+
+$ENTRY ButFirst tN eX = eX;
+
+$ENTRY DELETE e.NameList = <Map *DeleteFile e.NameList>;
+
+DeleteFile sn, <NormName sn> : sN = {
+     <TABLE_VALUE *MODTABLE 'O' sN> : sF , <GETV sF> : eL
+               = <TABLE_VALUE *MODTABLE 'D' sN>
+               = <Map *Cancel eL sF> = eL;
+     <PRINTLN! *STDERR "No file " sN " loaded">;
+     };
+Cancel { (eA) = <eA>; sR , {<CLOSE sR>; ;} };
+
+
+
+
+
+
+Tosec {
+  e1 s2 s3 s4 = e1 s2 '.' s3 s4;
+  e1 = <Tosec '0' e1>;
+  };
+
+$ENTRY CTIME tF ex , <LINK tF> : tf ,
+   <TIME_ELAPSED> <tf ex> <TIME_ELAPSED> : sb er se = er <SUB se sb>;
+*  <PRINT "Computation time = " <Tosec <TO_CHARS <SUB se sb>>> " seconds.\n">
+*     = er;
+
+* Entry to break before the call
+$ENTRY B tF ex = <APPLY *PreBreak <LINK tF> ex>;
+PreBreak tf ex = <BREAK> <tf ex>;
+
+* Start function
+$ENTRY RFStart e1 = <InLoop *I *I> ,
+   <Map *LoadFile <ButFirst <NameSum <GETV <GETN *SYSARG 1>>>>>
+   <CONTINUE> <EXIT>;
+$ENTRY CONTINUE =;
+
+$ENTRY ASK = <Input (*PRINT "#>") *ActPrint CON>;
+
+ActPrint {
+  , <EOF *STDLOAD> : T = ;
+  = <PRINTLN "Enter function name and argument">;
+  tF eA , <LINK tF> : tf , {
+     <tf eA> : { = ; eR = <WRITELN eR> };
+     <PRINTLN "FAIL: Invalid argument(s)">;
+  }; };
+
+$ENTRY LINK tF , <MODE tF> : {
+   STRING ,
+      <SETV X <UPPER <GETV tF>>> : t.F1 ,
+      <TABLE_VALUE *SYSTABLE 'U' t.F1> : sf,
+      <MODE sf> : {
+         EMPTY , {
+           <TABLE_VALUE *LINKTABLE 'O' t.F1> : s.FileName,
+              <LOAD s.FileName> , {
+                 <MODE sf> : FUNC = sf;
+                 <PRINTLN "ERROR: No function " t.F1 " in module " s.FileName>
+                     = *OUT;
+                 };
+           <PRINTLN "FAIL: Unknown function name " t.F1> = *OUT;
+           };
+         sZ = sf;
+         };
+   sZ = tF;
+   };
+
+$ENTRY CALL tF eA , <<LINK tF> eA>;
+$ENTRY OUT e1 = ;
+$EXTERN LINKTABLE;
+$END
+
+$TABLE LINKTABLE;
+$EXEC TABLE_LINK *LINKTABLE
+               COMP C
+               CL   C
+               BRK  TR
+               TRC  TR
+               TRCA TR
+               ;
+$EXEC RFStart;

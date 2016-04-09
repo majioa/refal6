@@ -1,0 +1,117 @@
+/*   Кодировка русского текста латинскими буквами
+
+Главный принцип кодировки - чтобы кодированный текст легко читался.
+Русский текст кодируется побуквенно в соответствии с таблицей
+перекодировки, определяемой вектором VRL.
+Вектор VRL определяет коды заглавных русских букв, коды для
+строчных букв получаются понижением регистра соответствующих
+латинских кодов. буквы Ь и ь имеют один и тот же код '.
+Буква Ъ имеет код 'J, буква ъ имеет код 'j.
+Вкрапления в русский текст латинских букв (и знаков ')
+обрамляются знаками `. Знаки ` всегда удваиваются.
+
+Для кодировки русского текста вызывается функция <RUSLAT>,
+для обратной кодировки вызывается функция <LATRUS>
+Имена входного и выходного файлов задаются в параметрах командной строки.
+*/
+
+$CHANNEL In,Out;
+$VECTOR VRL    A B V G D E Zh Z I J K L M N O P R S T U
+               F Kh C Ch Sh Shch "\'J" Y "\'x" Eh Ju Ja;
+
+Wlower {
+   "\'x" = "\'";
+   sw = <SETV X <LOWER <GETV sw>>>;
+   };
+
+$VECTOR Vrl    <Map *Wlower <GETV *VRL>>;
+
+$STRING Slr    'абцдефгхийклмнопкрстуввхыз';
+$STRING SLR    'АБЦДЕФГХИЙКЛМНОПКРСТУВВХЫЗ';
+
+Ruslat {
+    '`' e1 = '``' <Ruslat e1>;
+    sx e1, <LatLet? sx> = '`' sx <RLQuote e1>;
+    sx e1 =  <Rl sx> <Ruslat e1>;
+    =;
+    };
+
+LatLet? {
+   '\'';
+-- '\"';
+   sx, <UPPER <TYPE sx>> : 'L' e;
+   };
+
+RLQuote {
+    '`' e1 = '``' <RLQuote e1>;
+    ' ' e1 = <RLQuote e1> : { '`' e2 = '` ' e2; e2 = ' ' e2 };
+    sx e1, <COMPARE <ORD sx> 128> : '<' = sx <RLQuote e1>;
+    sx e1 = '`' <Ruslat sx e1>;
+    = '`';
+    };
+
+Rl sA = <ORD sA> : sN, {
+     <COMPARE sN 128> : '<' = sA;
+     <COMPARE sN 160> : '<' = <GETN *VRL <SUB sN 128>>;
+     <COMPARE sN 176> : '<' = <GETN *Vrl <SUB sN 160>>;
+     <COMPARE sN 224> : '<' = sA;
+     <COMPARE sN 240> : '<' = <GETN *Vrl <SUB sN 208>>;
+     = sA;
+     };
+
+Latrus {
+         '\'j'  e1 = 'ъ'  <Latrus e1>;
+         '\'J'  e1 = 'Ъ'  <Latrus e1>;
+         '\'x'  e1 = 'Ь'  <Latrus e1>;
+         '\''   e1 = 'ь'  <Latrus e1>;
+         'ju' e1 = 'ю' <Latrus e1>;
+         'ja' e1 = 'я' <Latrus e1>;
+         'shch' e1 = 'щ' <Latrus e1>;
+         'Ju' e1 = 'Ю' <Latrus e1>;
+         'Ja' e1 = 'Я' <Latrus e1>;
+         'JU' e1 = 'Ю' <Latrus e1>;
+         'JA' e1 = 'Я' <Latrus e1>;
+         'SHCH' e1 = 'Щ' <Latrus e1>;
+         'Shch' e1 = 'Щ' <Latrus e1>;
+         '``' e1 = '`' <Latrus e1>;
+         '`' e1 = <LRQuote e1>;
+         sx 'h' e1 = <SH sx> <Latrus e1>;
+         sx 'H' e1 = <SH sx> <Latrus e1>;
+         sx e1 = <Lr sx> <Latrus e1>;
+         =;
+         };
+SH { 'e' = 'э'; 'E' = 'Э';
+     'k' = 'х'; 'K' = 'Х';
+     'c' = 'ч'; 'C' = 'Ч';
+     's' = 'ш'; 'S' = 'Ш';
+     'z' = 'ж'; 'Z' = 'Ж';
+     sx = sx 'х';
+     };
+Lr  sx = <TYPE sx> : {
+     'L' sz = <GETN *SLR <SUB <ORD sx> <ORD 'A'>>>;
+     'l' sz = <GETN *Slr <SUB <ORD sx> <ORD 'a'>>>;
+     ez = sx;
+     };
+LRQuote {
+    '``' e1 = '`' <LRQuote e1>;
+    '`' e1 = <Latrus e1>;
+    sx e1 = sx <LRQuote e1>;
+    =;
+    };
+
+DO sf = {
+    <Loop sf <OPEN *In <ARG 2> R> <OPEN *Out <ARG 3> W>>;
+    =
+    } = <EXIT>;
+
+Loop sf s.In s.Out , {
+    <EOF s.In> : T =;
+    <READ_LINE! s.In> : {
+       , <EOF s.In> : T =;
+       eA = <PRINTLN! s.Out <sf eA>> <Loop sf s.In s.Out>;
+    }  };
+
+$ENTRY RUSLAT = <DO *Ruslat>;
+$ENTRY LATRUS = <DO *Latrus>;
+
+$EXTERN Map,OPEN;

@@ -1,0 +1,210 @@
+   Object VIDEO
+   ------------
+   When the Refal program starts execution the graphic videomode is on.
+   The object of the mode VIDEO implements following functions:
+
+       <MAKE VIDEO [s.loc.]> -> s.loc
+       <SEND s.Video e.Mess> -> e.Ans
+
+   The object s.Video is a kind of record with the following attributes:
+
+   s.AttrName          t.AttrValue
+
+   Color                sN
+   BackColor            sN
+   Background           On | Off
+   ClipArea             (t.Pos t.Vec)
+   Base                 t.Pos
+   Current              t.Pos
+   Mapping              (t.Pos-Origin s.Int-Norm e.Vec-Basis) |
+                                (Shift t.Vec) | (Extention s.Num s.Den) |
+                                (Rotation si sj s.Angle)
+   Function             Set | Xor
+   Palette              (e.Palette)
+   DrawStyle            (e.DrawStyle)
+   FillStyle            (e.FillStyle)
+   Font                 (s.Font s.Xsize s.Ysize)
+   ActivePage           s.Int
+   VisualPage           s.Int
+
+The messages for direct access to these attributes are:
+
+       <SEND s.Video Get t.AttrName...> == t.AttrValue
+       <SEND s.Video Set t.AttrName "=" t.AttrValue> ==
+
+The argument t.AttrName can be either s.AttrName (see above) or
+(t.AttrName1 t.AttrName2...), each being either... . Respectively,
+t.AttrValue is either t.AttrValue itself or (t.AttrValue1 t.AttrValue2...),
+each being either... .
+Key words Set and Get have synonyms ":" and "." respectively.
+
+The following messages output information to graphic screen
+(all these operations use above attributes as parameters):
+
+<SEND s.Video Draw Pixel t.Point> ==
+
+<SEND s.Video Draw Line t.Point0 t.Point1 ... t.PointN> ==
+
+<SEND s.Video Draw         Rectangle t.Point0 t.Vector> ==
+
+<SEND s.Video Draw [Front] Polygon t.Point0 t.Point1 ... t.PointN> ==
+
+<SEND s.Video Draw [Front] Ellipse t.Point0 t.VectorX t.VectorY> ==
+
+<SEND s.Video Fill         Rectangle t.Point0 t.point1> ==
+
+<SEND s.Video Fill [Front] Polygon t.Point0 t.Point1 ... t.PointN> ==
+
+<SEND s.Video Fill [Front] Ellipse t.Point0 t.VectorX t.VectorY> ==
+
+<SEND s.Video Fill Area t.Point s.BorderColor> ==
+
+<SEND s.Video Out Text e.Text> ==
+      Outputs text starting from the Current position.
+      Returns the position where the continuation should start.
+      e.Text is a sequence of containers,
+      whose contents outputs successively.
+
+<SEND s.Video Move Rectangle t.Point0 t.Vector0 [To|From] t.Point1> ==
+      The area of the rectangle (t.Point0 t.Vector0) moves so that
+      its corner t.Point0 moves to/from the point t.Point1.
+
+<SEND s.Video Move Rectangle t.Point0 t.Vector0 [To|From] t.Image> ==
+      t.Image should be a STRING object.
+      Get the image from the screen to the buffer t.Image or
+      put the image to the screen from the buffer t.Image.
+
+      Special messages are
+
+<SEND s.Video MakeInstance s.Loc> ==
+      Makes a copy of the object s.Video into location s.Loc
+
+<SEND s.Video ToScreen A t.Point1 t.Point2 ...> == t.Point1' t.Point2' ...
+<SEND s.Video ToScreen B t.Point1 t.Point2 ...> == t.Point1' t.Point2' ...
+<SEND s.Video ToScreen C t.Vect1  t.Vect2  ...> == t.Vect1'  t.Vect2'  ...
+      Convert points or vectors of any mode to modes A, B and C.
+      The point in mode A relates to videopage #0,
+      in mode B - to the active videopage of object s.Video.
+
+The following format allows to put several operations
+into a single message:
+
+    <SEND s.Video List (e.Op1) (e.Op2) ...> == e.Res
+
+each e.Op being one of the above messages, e.Res being the concatenation
+of the results of e.Op's.
+A local copy of the record s.Video is created for the following message list:
+
+    <SEND s.Video Instance (e.Op1) (e.Op2) ...> == e.Res
+
+so that the object s.Video itself does not change.
+
+The format of t.Point is one of:
+    (A sX sY) - screen absolute coordinates (from the top left corner)
+    (B sX sY) - screen based coordinates (from the Base)
+    (C sX sY) - screen relative coordinates (from the Current)
+    (K sX sY sZ) - videocamera absolute coordinates (from the Base)
+    (L sX sY sZ) - videocamera relative coordinates (from the Current)
+    (P s1 s2 ...) - virtual point coordinates (from the Origin)
+    (Q s1 s2 ...) - virtual relative coordinates (from the Current)
+
+The formats of t.Vector are the same. The point is treated as vector
+which starts in the Current point and ends in the given point.
+The components of vector are defined exactly as differences between
+the coordinates of the mentioned points. When vector is defined via
+the Mapping its components evaluate first exactly and then round to
+integer. Thereby the sizes of rectangle do not depend on the occasional
+alignment of its main corner.
+
+The Current is reset to each new point (not vector).
+But: the operation Set Mapping "=" ... does not change Current.
+
+The point/vector of mode P,Q may contain more than 2 coordinates
+(the upper limit is DIM=5).
+Its coordinates called virtual should transform
+by the linear transformation called Mapping
+to the two-dimensional screen coordinates.
+
+The Mapping consists of three parts: Origin, Basis and Norm:
+
+    Origin : t.Pos = (s.x s.y s.z)
+    Norm   : s.Int-Norm
+    Basis  : (t.V1 t.V2 ... t.Vn), where t.Vi = (s.xi s.yi s.zi)
+
+Given the virtual point (P s1 s2 ...) the result of mapping
+is (B sX sY), where
+
+    sX = s.xc / cR
+    sY = s.yc / cR
+
+where
+
+    cR = s.zc/D+s.Int-Norm
+    D = 1000 - the distance from user's eye to the screen (in pixels)
+    s.xc = (s.x + s.x1 * s1 + s.x2 * s2 + ...)
+    s.yc = (s.y + s.y1 * s1 + s.y2 * s2 + ...)
+    s.zc = (s.z + s.z1 * s1 + s.z2 * s2 + ...)
+
+The triple (K s.xc s.yc s.zc) represents three-dimensional
+"video-camera" coordinates. The screen lies in the plane (z=0).
+The eye of the user is asumed to be at the point (0,0,-1000).
+The third coordinate s.zc represents the distance,
+which controls the compression ratio. Usually all z's are 0, and the
+compression ratio is normal (s.Int-Norm). The greater s.z, the greater
+the compression ratio, the less the visual sizes of objects.
+The virtual point (Q s1 s2 ...) transforms similarly, asuming
+(s.x s.y s.z) to be (s.xc s.yc s.zc) of the Current (previous) point.
+
+The mapping for vector is, in general, the main linear part
+(the differential) of mapping for points at the point Current.
+Let (K s.xc s.yc s.zc) be the Current. The result of mapping vector
+(Q s1 s2 ...) is the screen vector (C sX sY) where
+
+    sX = (s.xv - (s.zv/D) * s.xc / cR) / cR
+    sY = (s.yv - (s.zv/D) * s.yc / cR) / cR
+
+where
+
+    s.xv = s.x1 * s1 + s.x2 * s2 + ...
+    s.yv = s.y1 * s1 + s.y2 * s2 + ...
+    s.zv = s.z1 * s1 + s.z2 * s2 + ...
+
+The vector of the form (P s1 s2 ...) transforms similarly but
+
+    s.xv = (s.x-s.xc) + s.x1 * s1 + s.x2 * s2 + ...
+    s.yv = (s.y-s.yc) + s.y1 * s1 + s.y2 * s2 + ...
+    s.zv = (s.z-s.zc) + s.z1 * s1 + s.z2 * s2 + ...
+
+There are three special forms for mapping: Shift, Extention and Rotation
+(Shift t.Vec) specifies parallel shift over t.Vec.
+(Extension s.Num s.Den) specifies extension times s.Num/s.Den .
+(Rotation si sj s.Angle) specifies rotation within the plane formed by
+i-th and j-th elements of the Basis over s.Angle of angular degrees (the
+positive direction is from i-th to j-th basic vector).
+
+Read operations for Base and ClipArea return the result in A-format.
+
+Each graphic operation uses Color attribute to draw, fill or write.
+The attribute BackColor is used by Out Text operation when Background is on.
+
+The attribute ClipArea is a rectangle in screen coordinates which bounds
+the figure drawn. When the new ClipArea is set the intersection of the new
+and the old ones is evaluated and stored.
+
+The parameter Front enables drawing if the figure has right orientation
+(in the screen coordinates), else disables.
+
+Generally, there are several videopages available: #0, #1,... .
+Each time there is one active page and one visual page,
+which may be either same or different.
+When page #n is active, it's top left corner is the point (A 0 0).
+All graphic primitive use active page to draw into.
+However, in VGA mode the maximum available page is #1, which has the size
+640x340, and page #0 has the size 640x480.
+More over, when page #1 is visual it is not displayed totally,
+so it is a good idea to make it active only for making the process
+of drawing invisible and to make it visual only for debugging.
+To trasfer drawing from page #1 to page #0 the operation Move
+can be used. It regards all pages as glued together as a single band,
+so that page #1 is just under the page #0. Note that point (A 0 0)
+is always a top left corner of the currently active page.

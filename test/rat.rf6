@@ -1,0 +1,76 @@
+-- RATIONAL EXTENSION OF A EUCLID RING
+--
+-- Given a ring with 0,1, "+", "-", "*", "/", ORT, where
+--  <"/" a b> is defined only for a = k*b,
+--  <ORT a b> => u v, where u a + v b = 0 and u is as close to 1 as possible
+-- Make a field of qoutients (Rat x y) with "+", "-", "*", "/", unary CAN,
+-- constructor RAT.
+-- "+" and "*" get n-ary.
+
+$EXTERN "+", "-", "*", "/", CAN, RAT;
+
+$SET Add *"+";
+
+"+" {
+    a b, <Add a b>;
+    0 b = b;
+    a 0 = a;
+    (Rat an ad) (Rat bn bd), / <RAT ad bd> : {
+         (Rat 1 v), / (Rat <Add <Mul an v> bn> bd);   -- For speed
+         (Rat u v),   (Rat <Add <Mul an v> <Mul bn u>> <Mul ad v>);
+         u , (Rat <Add an <Mul u bn>> ad);
+         };
+    (Rat an ad) b, / (Rat <Add an <Mul b ad>> ad);
+    a (Rat bn bd), / (Rat <Add <Mul a bd> bn> bd);
+    a b c _d = <"+" <"+" a b> c _d>;
+    a = a;
+    = 0;
+    };
+
+$SET Sub *"-";
+
+"-" {
+    a b, <Sub a b>;
+    a b, <"+" a <"*" b -1>>;
+    };
+
+$SET Mul *"*";
+
+"*"  {
+    a b, <Mul a b>;
+    0 b = 0;
+    a 0 = 0;
+    1 b = b;
+    a 1 = a;
+    (Rat an ad) (Rat bn bd), / <RAT <Mul an bn> <Mul ad bd>>;
+    (Rat an ad) b , / <RAT <Mul an b> ad>;
+    a (Rat bn bd) , / <RAT <Mul a bn> bd>;
+    a b c _d = <"*" <"*" a b> c _d>;
+    a = a;
+    = 0;
+    };
+
+$SET Div *"/";
+
+"/"  {
+    a b, <RAT a b>;
+    (Rat an ad) (Rat bn bd), / <RAT <Mul an bd> <Mul ad bn>>;
+    (Rat an ad) b, / <RAT an <Mul ad b>>;
+    a (Rat bn bd), / <RAT <Mul a bd> bn>;
+    };
+
+-- Ratio constructor with reduction
+RAT  a b, {
+    <DIVMOD a b> : n 0 = n; -- for speed
+-- we use <DIVMOD a b> : n 0 instead of <Div a b> : n,
+-- since Div (integer "/") is overdefined in the current system
+    <ORT a b> : c d = (Rat <SUB 0 d> c);
+    };
+
+-- Unary cancellation (reduction) for the result field
+CAN {
+   (Rat a b), <RAT a b>;
+    a = a;
+    };
+
+$EXTERN ORT;

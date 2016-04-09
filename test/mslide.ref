@@ -1,0 +1,45 @@
+$TABLE KEYS
+        -75 LEFT
+        -72 UP
+        -77 RIGHT
+        -80 DOWN
+        -115 C_LEFT
+        -116 C_RIGHT
+        13   RET
+        27   ESC
+        ;
+
+$EMPTY  Save;
+$EXTERN Map;
+       O2 { s1 s2 e3 = s1 <O2 e3>; = };
+       Nw tW = <SETN tW 15 ' '>;
+$ENTRY FL = <PRINT <Map &Nw <O2 <GETV &SYSTABLE>>>>;
+$ENTRY L , <KEY_READ> : { 13 =; sk = <PRINT sk ' '> <L> };
+
+$ENTRY Fid sL = <Fild sL <RECT_GET sL>>;
+Fild sL (sx sy sw sh), { sh : 0 =;
+      = <Fild1 sL sx sy sw> <Fild sL (sx <ADD sy 1> sw <SUB sh 1>)> };
+Fild1 sL sx sy sw = <SLIDE_POS_SET sL sx sy> <Filds sL <ADD sx sy> sw> ;
+Filds sL sd sw , { sw : 0 =;
+      = <SLIDE_ATTR_SET sL <MOD <TIME_ELAPSED> 128>>
+        <PRINT! sL <MOD sd 10>> <Filds sL <ADD sd 1> <SUB sw 1>> };
+
+* Show Slide sL on the screen sC using rect tR
+$ENTRY Slide-show sC sL tR =
+       <SLIDE_COPY <MAKE_SLIDE &Save tR> sC >
+           = <Slide-show-loop sC sL tR>;
+
+Slide-show-loop sC sL tR =
+  <SLIDE_COPY sC sL tR>,
+  <SLIDE_OWNER_GET sL> : sO sx sy,
+  <TABLE_VALUE &KEYS 'O' <KEY_READ>> : {
+      = sx sy;
+      LEFT  = <SUB sx 1> sy;
+      RIGHT = <ADD sx 1> sy;
+      UP    = sx <SUB sy 1>;
+      DOWN  = sx <ADD sy 1>;
+      RET   = ;
+      s = sx sy;
+      } : { =; sX sY = <SLIDE_XY_SET sL sX sY>
+                       <SLIDE_COPY sC &Save>
+                       = <Slide-show-loop sC sL tR> };
