@@ -16,7 +16,7 @@
 #define EXIST_SYS_TIMEB_H
 /* functions to get time with millisecond precision */
 
-#define EXIST_CONIO_H
+#undef EXIST_CONIO_H
 /* functions to input characters from the keyboard immediately; */
 
 /******************************************************************/

@@ -4,10 +4,18 @@
 *******************************************************************/
 
 #define CLASS_EXT
+
 #include "rfalloc.h"
 #include "rfio.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+static void init_class(void) __attribute__((constructor));
+static void init_class(void)
+{
+    wrkptr = NULL;
+    wrkfun = NULL;
+}
 
 int  iregtype(pfunc f,char * n, char ch)
 {  if(++pfunc_free >= MAXMODE) {

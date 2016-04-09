@@ -3,6 +3,8 @@
        rfgo.c     - RASL interpreter CALLER
 ************************************************************************/
 
+#include <stdio.h>
+
 #define PRX(s,l,r) { printlv(""); fprintf(stdtrc,"%s: ",s); rf_outs(l,r); fprintf(stdtrc,"\n"); }
 #define PRH(s,h)
 /* { headptr hh; hh=h;\
@@ -13,14 +15,26 @@
 /* fprintf(stdtrc,"point %d\n",n); */
 
 #define EXTINT
+
+#include "refcom.h"
+#include "rfstor.h"
 #include "refint.h"
 #include "rfalloc.h"
 #include "rftable.h"
 #include "contain.h"
 #include "rfio.h"
 #include "fileio.h"
+
 extern char * blttxt[];
 extern int    bltcnt;
+
+FILE *stdtrc = NULL;
+
+static void init_debugout(void) __attribute__((constructor));
+static void init_debugout(void)
+{
+    stdtrc = stderr;
+}
 
 /* Create a list of builtin functions on the free memory list:
         CARD *CARD LESS *LESS ... */
@@ -293,7 +307,19 @@ headptr chkref(headptr h)  /* Only for SPLIT model */
 #endif
 
 
+ifunc work_function(headptr std_load, addr *work_pointer)
+{
+   int flag = ((std_load->info.data.flag ) >>2 ) & 63;
+   pfunc func = *pfunc_table[ flag ];
+   return func(std_load, 24, work_pointer);
+}
 
+
+int work_eof(headptr std_load, addr *work_pointer)
+{
+   ifunc func = *((Tfeof)work_function(std_load, work_pointer));
+   return func(*(FILE *)work_pointer);
+}
 
 
 
@@ -330,29 +356,40 @@ LOGICAL rg_GO()
    bstart = b; /* This will be the left bound of the result */
 /* make standard load channel STDLOAD */
    if(NOT iniextbox("STDLOAD",&stdload)) rf_err(ERCINIT);
- while (strlen(ininame)!=0) {  /* ininame = "name1+name2+..." */
-   if (NOT rfopi(&ininame,stdload)) rf_err(ERCINIT);
-   chan[3]=stdload; VAL(stdload)++;   /* make chan[3] actual */
-   if(flag_s)  rf_out_stat (stdtrc);
-   while (NOT FEOF(stdload)) {
-      rf_error=0;
-      savestep = step;
-      res = rf_inpc(stdload, Afreestor, linefeed, systable);  /* INTER */
-      if (NOT res OR tracefl OR flag_s OR flag_r) {
-        if (rf_error==0) {
+   /* ininame = "name1+name2+..." */
+   while (strlen(ininame) != 0 && rf_exitcd < 0 && rf_error != ERREXIT) {
+     if (NOT rfopi(&ininame,stdload))
+       rf_err(ERCINIT);
+     chan[3] = stdload;
+     VAL(stdload)++;   /* make chan[3] actual */
+     if (flag_s)
+       rf_out_stat (stdtrc);
+     while (! work_eof(stdload, &wrkptr)) {
+       rf_error = 0;
+       savestep = step;
+       res = rf_inpc(stdload, Afreestor, linefeed, systable);  /* INTER */
+       if (NOT res OR tracefl OR flag_s OR flag_r) {
+         if (rf_error == 0) {
 /*          printlv("RES: ");                  */
-          if (bstart != b) rf_oute(NEXT(bstart),b);
-          fprintf(stdtrc,"\n");
-          }
-        else { printlv("MAIN: "); rf_errmsg(rf_error); }
-        }
-      if (savestep!=step AND flag_s) rf_out_stat (stdtrc);
-      b = bstart;
-      if(rf_error==ERREXIT) { rf_error=0; goto end; }
-      if(rf_exitcd >= 0) goto end;
-      }
+           if (bstart != b)
+             rf_oute(NEXT(bstart),b);
+           fprintf(stdtrc, "\n");
+         } else {
+           printlv("MAIN: ");
+           rf_errmsg(rf_error);
+         }
+       }
+       if (savestep != step AND flag_s)
+         rf_out_stat(stdtrc);
+       b = bstart;
+       if (rf_error == ERREXIT) {
+         rf_error = 0;
+         break;
+       }
+       if (rf_exitcd >= 0)
+         break;
+     }
    }
-end:
    rf_cnt_end();
    *AeresL = *AeresR = NOELEM;
    return(TRUE);

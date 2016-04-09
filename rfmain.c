@@ -5,14 +5,9 @@
 
 #define DEFINE_EXTCOM 1
 
+#include <stdbool.h>
 #include "refgen.h"
 extern LOGICAL rg_GO();
-
-static void init_debugout(void) __attribute__((constructor));
-static void init_debugout(void)
-{
-    stdtrc = stderr;
-}
 
 bool main (int argc, char** argv)
 {

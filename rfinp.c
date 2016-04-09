@@ -232,7 +232,8 @@ A: while (C != EOF) {
             elemptr savb;
             static elemptr p;
             savb=b;
-            if(rf_eval(outh,FALSE)!=TRUE) b=savb;
+            if(rf_eval(outh,FALSE)!=TRUE)
+               b=savb;
             if(irepn!=irepnfree) {
                 for (p=savb; p!=b;) {
                     p=NEXT(p);

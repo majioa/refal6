@@ -12,6 +12,10 @@
 #define EXT extern
 #endif
 
+#include <stdio.h>
+#include "refelem.h"
+#include "refcom.h"
+
 typedef unsigned seglen;  /* ### type for segment length (see rfalloc.h) */
 typedef int      iseglen; /* ### type for segment length (see rfalloc.h) */
 
@@ -37,12 +41,11 @@ EXT     headptr  hashwd[HASHWD];   /* Hash-table for words             */
 EXT     int      LBUF;           /* Length of output buffer          */
 EXT     char*    Buf;            /* Buffer for pretty output         */
 
+extern FILE *    stdtrc;           /* File for debug information       */
+
 #ifdef STOR_OWN
-static FILE *stdtrc = NULL;        /* Stderr for debug information       */
 static char* WORDS[NWDS] = {"T","F","TABLE","SYSTABLE","SYSARG","SYSID"};
 static long  totstor,totword;
-#else
-extern FILE *    stdtrc;           /* File for debug information       */
 #endif
 
 

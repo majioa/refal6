@@ -8,7 +8,8 @@ static int breakcounter = 0;
 #define brktest if(NOT breakcounter--) { breakcounter = 50; BRKTEST;}
 
 void handint(int n)                                  /* handint */
-{  while (BRKTEST) getch();
+{
+   while (BRKTEST) GETCH;
    printlv("INTERRUPT!!!\n");
    rf_error = ERRBRK;
 }
