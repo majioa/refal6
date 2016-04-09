@@ -1,0 +1,54 @@
+************************************************************************
+*  R E F A L - 6     Copyright (C) 1992 by Arkady Klimov               *
+*      REFAL-C compiler module:                                        *
+*             rsserv.ref  - service functions                          *
+************************************************************************
+$EXTBOX Lineno, Errfl, Modname, Typename, Len;
+$BOX    Flags;
+*
+$ENTRY Addl { sx e1 = <WTR sx <GTR sx> e1>; };
+*
+$ENTRY ERR { e1 = <EXITCD 10><WTR &Errfl T> <ERR1 "ERROR" e1>; };
+$ENTRY ERR0 { e1 = <EXITCD 10> <WTR &Errfl T> <PRINTLN! 2 e1>; };
+$ENTRY WNG { e1 = <ERR1 "WARNING" e1>; };
+*
+ERR1 {
+   sT (ex) e1 = <ERR2 (sT <SUB <CPR &Len> <LENCONT (ex)>>) e1>;
+   sT e1 = <ERR2 (sT 0) e1>;
+   };
+ERR2 { (sT sP) e1 = <ERR3 <Flag 'L'>
+         "*** "<CPR &Modname>"."<CPR &Typename>
+                         "("<CPR &Lineno>", "sP"): "sT": "e1>; };
+ERR3 {
+   (eZ) e1 = <PROUT e1> <Plist e1>;
+   tZ e1 = <PROUT e1>;
+   };
+*
+$ENTRY Flag { sF = <Flag1 sF <CPR &Flags>>; };
+Flag1  {
+     sF (sF eV) e2 = (eV);
+     sF (sX eV) e2 = <Flag1 sF e2>;
+     sF = F;
+     };
+*
+$ENTRY Inp { =  <Inpa <GetLst 12>>; };
+$ENTRY Inpa { tA, <WTR &Lineno <ADD <GTR &Lineno> 1>> , tA : {
+   0 = 0;
+   (s1  e2) = <WTR &Len <LENCONT tA>> <CPR tA>;
+   () = <Inp>;
+}; };
+*
+OutLst { eA , <Flag 'L'> : {
+   sZ = eA;
+   (eZ) = eA <Plist eA>;
+}; };
+*
+$ENTRY  Setflags { =; eA = <WTR &Flags eA>; };
+*
+Plist { eX = <PRINTLN! 5 eX>; };
+PROUT { eX = <PRINTLN! 1 eX>; };
+GetLst { sC , <EOF sC> : {
+       F , <READ_LINE! sC> : { , <EOF sC>:T = 0; eA = (<OutLst eA>); };
+       T = 0;
+};     };
+*

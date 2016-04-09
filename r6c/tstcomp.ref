@@ -1,0 +1,37 @@
+AA s1 e2 , e2 : (e3) e4 = e2;
+AB s1 e2 , e2 : (e3) e4 = e3;
+AC s1 e2 , e2 : (e3) e4 = e4;
+AD s1 e2 , e2 : (e3) e4 = (e3);
+AE s1 e2 , e2 : (e3) e4 = (e3) e3;
+AF s1 e2 , e2 : (e3) e4 = s1 (e3);
+AG s1 e2 , e2 : (e3) e4 = (e3) e4;
+AH s1 e2 , e2 : (e3) e4 = s1 e2 e3;
+
+BA (e1) e2 : e3 (e4) = e1;
+BB (e1) e2 : e3 (e4) = e2;
+BC (e1) e2 : e3 (e4) = e3;
+BD (e1) e2 : e3 (e4) = e4;
+BE (e1 A e2) = (e1) (e2);
+BF (e1 A e2) = (e1 A) (A e2);
+BG (e1 A e2) = (e1 A e2) (e2);
+BH (e1 A e2) = (e1) (e1 A e2);
+BI  e1 A e2  = (e1) (e2);
+BJ  e1 A e2  = (e1 A) (A e2);
+BK  e1 A e2  = (e1 A e2) (e2);
+BL  e1 A e2  = (e1) (e1 A e2);
+
+CA s1 e2 , e2 : X (e3) e4, e2 : e5 (e6) = e2;
+CB s1 e2 , e2 : X (e3) e4, e2 : e5 (e6) = e3;
+CC s1 e2 , e2 : X (e3) e4, e2 : e5 (e6) = e4;
+CD s1 e2 , e2 : X (e3) e4, e2 : e5 (e6) = e5;
+CE s1 e2 , e2 : X (e3) e4, e2 : e5 (e6) = e6;
+CF s1 e2 , e2 : X (e3) e4, e2 : e5 (e6) = (e6);
+CG s1 e2 , e2 : X (e3) e4, e2 : e5 (e6) = (e6) (e3) e4;
+CH s1 e2 , e2 : X (e3) e4, e2 : e5 (e6) = (e3) e2;
+CI s1 e2 , e2 : X (e3) e4, e2 : e5 (e6) = e3 e2;
+
+DA s1 e2 s3 = e2 s1 s3;
+DB (s1 e2 s3) = e2 s1 s3;
+DB1 (s1 e2 s3), e2: (e4) e5 = e4 s1 s3;
+DC sa tn, { sa:A; tn:s } = T;
+DD sa tn, sa:{A;B} = T;

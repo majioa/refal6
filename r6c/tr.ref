@@ -1,0 +1,118 @@
+************************************************************************
+*  R E FA L - 6     Copyright (C) 1992 by Arkady Klimov                *
+*     tr.ref - refal library functions (in addition to I.REF)          *
+************************************************************************
+
+*E                 BRK    ,      *refal                                *
+*E                 TRC    ,      *refal                                *
+*E                 REST   ,      *refal                                *
+*E                 CLEAR  ,      *refal                                *
+
+* A pattern for BRK
+Pbrk  e1 , { <FILTER e1> , / <Pbrk e1 <BREAK>> ; <Pbrk e1> };
+$ENTRY FILTER e1 =;
+* Set break point at call to each of eF
+$ENTRY BRK eF = <Map (*Setenvlp "Break point" *Pbrk) eF>;
+
+* A pattern for TRC
+Ptrc  eA , {
+  <FILTER eA>, /
+  <STEP> : s1,
+/*
+  <PRINT! *STDOUT s1': <' *Ptrc ' '>
+  <WRITE! *STDOUT eA>
+  <PRINTLN! *STDOUT '>'>,
+*/
+    {
+        <Ptrc eA> : eR =
+        <STEP> : s2,
+       = <PRINT! *STDOUT s1'-'s2': <' *Ptrc ' '>
+         <WRITE! *STDOUT eA>
+         <PRINT! *STDOUT '> -> '>
+             <WRITELN! *STDOUT eR>
+             eR;
+        <STEP> : s2,
+        <PRINTLN! *STDOUT s1'-'s2': <' *Ptrc '...> -> $FAIL'>
+           , { } ;
+        };
+   <Ptrc eA>;
+   };
+* Set tracing for each function of the list eF
+*  <TRC sF...> | <TRC (sF (*STDOUT s.Chan))...>
+$ENTRY TRC eF = <Map (*Setenvlp "Tracing point" *Ptrc) eF>;
+
+* A pattern for TRCA
+Ptrca  eA , {
+  <FILTER eA>, /
+  <PRINT! *STDOUT '<' *Ptrca ' '>
+  <WRITE! *STDOUT eA>
+  <PRINTLN! *STDOUT '>'>,
+         <Ptrca eA>;
+  <Ptrca eA>;
+  };
+* Set tracing argument for each function of the list eF
+*  <TRCA sF...> | <TRCA (sF (*STDOUT s.Chan))...>
+$ENTRY TRCA eF = <Map (*Setenvlp "Tracing point" *Ptrca) eF>;
+
+Setenvlp {
+  sM sP (eA) = <Setenvlp sM sP eA>;
+  sM sP sF eS, <TYPE sF> : {
+     'F' s , <TABLE_VALUE *SYSID 'O' sF> : sF1 =
+                 <Setenvlp sM sP sF1 eS>;
+     'R' s , <MODE sF> : FUNC , {
+             <"<" <REFCOUNT sF> 256> =
+               <MAKE FUNC> : sG,
+               <Foldr *Rept (sP sG) eS sP> : tQ,
+           <APPEND *SYSID <TABLE_NAME *SYSID 'O' sF> sG>, {
+                     <COMPARE <LENCONT sF> 3>:'>' , <MOVE sF sG> <MAKE FUNC sF>;
+                     <SETV sG <GETV sF>>;
+                     },
+                   <SETV sF <GETV tQ> (sM sP sF sG)>,
+           <PR sM " at " sF " is set">;
+                 = <PR "Function " sF " looks active">;
+                 };
+     s s = <PR sF " is not a function">;
+  }  };
+
+
+
+Rept {
+   (sP tF) tX = (<Rep sP tF <GETV tX>>);
+   tP tX = <PR tP " is not a replacement: (s t) is expected"> tX;
+   };
+Rep {
+  sP tF e1 sP e2 = e1 tF <Rep sP tF e2>;
+  sP tF e1 = e1;
+  };
+
+* Restore functions sF ...
+* A pattern for REST
+PPP e1 = <PPP e1>;
+$ENTRY REST  eF = <Map *Rest eF>;
+Rest sF , <TYPE sF> : {
+     'F' s , <TABLE_VALUE *SYSID 'O' sF> : sF1 =
+                 <Rest sF1>;
+     'R' s , <MODE sF> : FUNC,
+             <GETV sF> : e (sM sP sF sG) =
+                <MOVE sG sF> ,
+                <Rept (*PPP sF) *PPP> : tH ,
+                <SETV <MAKE FUNC sG> <GETV tH>> ,
+                <TABLE_NAME *SYSID 'D' sG>,
+                <PR sM " at " sF " is removed">;
+     s s = <PR "Function " sF " was not modified">;
+     };
+PR ea = <PRINTLN ea>;
+
+* Clear system tables of symbols which are no longer in use
+$ENTRY CLEAR { , <TESTMEM> : sN = <Clrtbl *SYSTABLE 2> <Clrtbl *SYSID 1>; };
+* Clear table of symbols which have no refferences to
+Clrtbl  { sT sN ,
+   <TABLE_LIST sT> : eA , <TABLE_LINK <MK_TABLE sT> <Clr <ADD sN 2> eA>>=; };
+Clr {
+   sN =;
+   sN sW sR eX , <REFCOUNT sR> : {
+       sN = <Clr sN eX>;
+       sZ = sW sR <Clr sN eX>;
+   };  };
+
+$EXTERN Map, Foldr, "<", APPEND;

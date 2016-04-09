@@ -1,0 +1,97 @@
+************************************************************************
+*  R E F A L - 6  Copyright (C) 1992 by Arkady Klimov                  *
+*       rcgen.ref  - output code generator                             *
+************************************************************************
+$EXTERN Flag, SYSINFO, ERR;
+$BOX Funname;
+
+$ENTRY Codgen  sf eA = <SETV *Funname sf>
+           = <Cgen (<Vmode> <Wmode> <Mmode>) eA>;
+
+Cgen {
+   tM sN eX = <Op tM sN> <Cgen tM eX>;
+   tM (BRANCH eA) eB = <Opb tM BRANCH <Cgen tM eA>> <Cgen tM eB>;
+   tM (ALT    eA) eB = <Opb tM ALT    <Cgen tM eA>> <Cgen tM eB>;
+   tM (sN eA) eX = <Op tM sN eA> <Cgen tM eX>;
+   tM =;
+   };
+
+* tM - Mode of code:
+*   (VECTOR sY)
+*   (CHAIN sY)
+*   (sX NUMBER)
+*   (sX WORD)
+*   (sX SYMBOL)
+
+$ENTRY Vmode , {
+    <Flag 'V'> : (eZ) = VECTOR;
+    <Flag 'C'> : (eZ) = CHAIN;
+    : = <Getinf 1>
+    };
+Wmode , {
+    <Flag 'W'> : (eZ) = WORD;
+        <Flag 'N'> : (eZ) = NUMBER;
+    <Flag 'S'> : (eZ) = SYMBOL;
+        := <Getinf 2>;
+        };
+Mmode , <Flag 'M'> : { (eZ) = T; sZ = F; };
+
+Getinf sN = <GETN *SYSINFO sN>;
+
+* Branch operator
+Opb   tM sO eA = <Op tM sO> <Ob tM eA> ;
+Ob  {
+   (CHAIN ex) eA = (eA);
+   (VECTOR ex) eA = <ADD <LENGTH eA> 1> eA;
+   };
+
+* Ordinary operator
+Op {
+   (sd  st     F ) BLOCK =;
+   (sd  NUMBER sm) sO eA = <O sO> eA;
+   (sd  WORD   sm) sO    = <Word <O sO>>;
+   (sd  WORD   sm) sO eA = <Opw <Optype sO> <O sO> eA>;
+   (sd  SYMBOL sm) sO eA = sO eA;
+   };
+
+
+
+
+* Convert instruction to the word format
+Opw {
+        1 sO sN = <Word sO sN>;
+        2 sO sN sM = <Word sO sN sM>;
+        T sO tA = <Word sO> tA;
+        E sO sL eX = <Word sO sL> eX;
+        };
+
+Word  eA = <SETV W <CHR <Ups eA>>>;
+
+Ups {
+   =;
+   s1 e2 , <COMPARE s1 196> : {
+       '<' = <ADD s1 64> <Ups e2>;
+       sZ = <ERR "Too many variables in function " <GETV *Funname>> 0 ;
+   };  };
+
+* Code of the operator
+O { sO = <POS ( NOP
+        PS     PSR    CSYM   CSYMR  SYMS    SYMSR   SYM     SYMR
+        OSYM   OSYMR  TERM   TERMR  OTERM   OTERMR  EXP     EMP
+        OEXP   OEXPR  SETB   CHKB   PLEN    PLENS   LEN     LENP
+        LENS   LENOS  NOP    NOP    NOP     NOP     NOP     NOP
+        BL     BR     BLR    MULT   MULE    MUL     TPLE    TPL
+        NS     TEXT   BLNS   BRACT  BUILTIN RETURN  EVAL    EST
+        STAKE  CUT    DO     UNDO   BRANCH  BRANCHR ALT     END
+    FAIL   BLOCK) sO> };
+
+* Type of the operator (format)
+Optype { sO , (
+  PS    0  PSR   0  CSYM T  CSYMR  T  SYMS    E  SYMSR   E  SYM   0  SYMR 0
+  OSYM  1  OSYMR 1  TERM 0  TERMR  0  OTERM   1  OTERMR  1  EXP   0  EMP  0
+  OEXP  1  OEXPR 1  SETB 2  CHKB   1  PLEN    0  PLENS   0  LEN   0  LENP 0
+  LENS  T  LENOS 1
+  BL    0  BR    0  BLR  0  MULT   1  MULE    1  MUL     2  TPLE  1  TPL  2
+  NS    T  TEXT  E  BLNS T  BRACT  1  BUILTIN 0  RETURN  0  EVAL  1  EST  0
+  STAKE 0  CUT   0  DO   0  UNDO   0  BRANCH  B  BRANCHR B  ALT   B  END  0
+  FAIL  0  BLOCK 0) : (e1 sO sT e2) = sT };

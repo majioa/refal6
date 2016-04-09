@@ -3,6 +3,7 @@
 *.sw*
 
 *.log
+*.orig
 
 r6i
 *.o

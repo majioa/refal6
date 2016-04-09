@@ -1,0 +1,193 @@
+************************************************************************
+*                                                                      *
+*                             R E F A L - 6                            *
+*                                                                      *
+*  Copyright (C) 1988 by Refal Systems Inc.                            *
+*  Copyright (C) 1988 by Program Systems Institute AS USSR             *
+*                                                                      *
+************************************************************************
+*                                                                      *
+*       refblt.ref  - built-in functions written in Refal              *
+*                                                                      *
+************************************************************************
+
+*                   List of functions                                  *
+
+*E                 SCREEN ,     *refal                                 *
+*E                 WINDOW ,     *refal                                 *
+
+
+* <SCREEN GOTOXY n1 n2>
+* <SCREEN CURSOROFF>
+* <SCREEN GETCURSOR>
+* <SCREEN WRITE ...>
+* <SCREEN WRITELN ...>
+* <SCREEN READ>
+* <SCREEN COLORS foreground background [BLINK]>
+*
+* <WINDOW MAKE xl,yl,xh,yh (attr) [ SINGLE/DOUBLE/(string) (frame_attr)
+*                                 [ (header) [(header_attr)]]]>
+* <WINDOW DELETE n>
+* <WINDOW ACTIVATE n>
+* <WINDOW DEACTIVATE>
+* <WINDOW ISACTIVE n>
+* <WINDOW EXIST n>
+* <WINDOW REST>
+* <WINDOW CURRENT>
+
+*
+*   Colors:
+*          Foreground  only          Background & Foreground
+*          -------------------------------------------------
+*             DARKGRAY                      BLACK
+*             LIGHTBLUE                     BLUE
+*             LIGHTGREEN                    GREEN
+*             LIGHTCYAN                     CYAN
+*             LIGHTRED                      RED
+*             LIGHTMAGENTA                  MAGENTA
+*             YELLOW                        BROWN
+*             WHITE                         LIGHTGRAY
+*
+
+
+
+$ENTRY SCREEN {
+   GOTOXY s1 s2,
+      <TYPE s1>:'N' ea,
+      <LESS s1 81>: T e.x1,
+      <LESS 0 s1>:T e.x2,
+      <TYPE s2>:'N' eb,
+      <LESS s2 26>: T e.y1,
+      <LESS 0 s2>:T e.y2   = <SYSGTXY s1 s2>;
+   CURSOROFF               = <SYSCOFF>;
+   GETCURSOR               = <SYSGTCR>;
+   COLORS sf sb e1,
+      <SYSBLNK e1>:sx,
+      <SYSFOR sf>: sn,
+      <SYSBACK sb>:sm      = <SYSCOL sn sm sx>;
+   WRITE e1 = <SYSWRTS e1>;
+   WRITELN e1 = <SYSWRTS e1 <CHR 13 10>>;
+   READ = <SYSRDS>;
+   CLEAR = <CLRSCR>;
+   }
+
+SYSBACK {
+   BLACK    = 0;
+   BLUE     = 1;
+   GREEN    = 2;
+   CYAN     = 3;
+   RED      = 4;
+   MAGENTA  = 5;
+   BROWN    = 6;
+   LIGHTGRAY= 7;
+   e1 =;
+   }
+
+SYSFOR {
+   DARKGRAY    = 8;
+   LIGHTBLUE   = 9;
+   LIGHTGREEN  = 10;
+   LIGHTCYAN   = 11;
+   LIGHTRED    = 12;
+   LIGHTMAGENTA= 13;
+   YELLOW      = 14;
+   WHITE       = 15;
+   sx, <SYSBACK sx>: sn = sn;
+   e1 =;
+   }
+
+SYSBLNK {
+   = 0;
+   BLINK = 1;
+   }
+
+$ENTRY WINDOW {
+   MAKE e1, <WINDOW REST> : sx, <LESS 0 sx>: T ey,
+           <Tmk e1>: sn = sn;
+   DELETE sn,
+           <TYPE sn> : 'N' e1,
+           <WINDOW EXIST sn>:T = <SYSWDEL sn>;
+   ACTIVATE sn,
+           <TYPE sn> : 'N' e1,
+           <WINDOW EXIST sn>:T,
+           <WINDOW ISACTIVE sn>:F = <SYSWACT sn>;
+   DEACTIVATE,
+           <WINDOW CURRENT>:sc = <SYSWDACT>;
+   REST = <SYSWFRE>;
+   EXIST sn, <TYPE sn>:'N'e1 = <SYSWEX sn>;
+   ISACTIVE sn, <TYPE sn>:'N'e1 = <SYSWISA sn>;
+   CURRENT = <SYSWCUR>;
+   };
+
+
+Tmk {
+   s1 s2 s3 s4 (e.attr),
+           <LISTNUMB s1 s2 s3 s4>:T,
+           <Tattr e.attr>:sn,
+           <Tint 1 s1 s3 80>:T,
+           <Tint 1 s2 s4 25>:T=         <SYSWBEG s1 s2 s3 s4>
+                                                       <SYSWATR sn sn sn>
+                                                       <SYSWEND>;
+   s1 s2 s3 s4 (e.attr) e.rest,
+           <LISTNUMB s1 s2 s3 s4>:T,
+           <Tattr e.attr>:s.a1,
+           <Tint 1 s1 s3 80>:T,
+           <Tint 1 s2 s4 25>:T,
+           <Trest e.rest>: (e.bord) s.a2 s.a3 (e.head),
+           <Tint <ADD s1 1> <SUB s3 1>>:T,
+           <Tint <ADD s2 1> <SUB s4 1>>:T =
+                                                       <SYSWBEG s1 s2 s3 s4>
+                                                       <SYSWATR s.a1 s.a2 s.a3>
+                                                       <SYSWFR e.bord>
+                                                       <SYSWHD e.head>
+                                                       <SYSWEND>;
+   e1 = ;
+   };
+
+LISTNUMB {
+   = T;
+   e1, <TYPE e1>: 'N'sx e2 = <LISTNUMB e2>;
+   e1 = F;
+   };
+
+Tint {
+   sx = T;
+   sx sy e1, <LESS sy sx>: F e2 = <Tint sy e1>;
+   e1 = F;
+   };
+
+Tattr {
+   sx sy e1,
+           <SYSFOR sx>:sf, <SYSBACK sy>:sb, <SYSBLNK e1>:sa =
+              <ADD <ADD <MUL sb 16> sf> <MUL sa 128>>;
+   };
+
+Trest {
+   tx (ey),
+           <Tbord tx>: (e.bord),
+           <Tattr ey>: sa = (e.bord) sa sa ();
+   tx (ey)(eh),
+           <Tbord tx>: (e.bord),
+           <Tattr ey>: sa,
+           <Isstr eh>:T = (e.bord) sa sa (eh);
+   tx (ey)(eh)(ez),
+           <Tbord tx>: (e.bord),
+           <Tattr ey>: s.a1,
+           <Isstr eh>:T,
+           <Tattr ez>: s.a2 = (e.bord) s.a1 s.a2 (eh);
+   e1 = F;
+   };
+
+Tbord {
+   SINGLE = ('Ú¿ÙÀÄ³´Ã');
+   DOUBLE = ('É»¼ÈÍºµÆ');
+   e1, <Isstr e1>:T, <LESS <LENW e1> 9>:T = (e1);
+   e1 = ;
+   };
+
+Isstr {
+   = T;
+   e1, <TYPE e1> : st s2 ex, 'LlDO': ea st eb = <Isstr ex>;
+   e1 = F;
+   };
+

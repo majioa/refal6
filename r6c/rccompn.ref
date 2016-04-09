@@ -1,0 +1,539 @@
+************************************************************************
+*  R E F A L - 6  Copyright (C) 1992 by Arkady Klimov                  *
+*       rccompl.ref  - compile the Refal function                      *
+************************************************************************
+*$TRACE Findsub, Search;
+$BOX FunNo, -- index of auxiliary function No and of argument variable No
+     BracNo; -- index of Bracket pseudo-variable (B n)
+
+*   The syntax of the function body syntax tree:
+
+* Notation:  x | y  means x or y
+*            x* means repetition of x zero or more times
+
+* function_body = path*
+* pattern = (L expr)
+* result  = (R expr)
+* block = (G path* )
+* path = ( statement* )
+* action = pattern | result | block
+* statement = action | NOT [action] | STAKE | CUT | DO | BIND [pattern]
+
+* expr = term*
+* term = symbol | (P expr) | (vartype index) | (K expr)
+* index = symbol
+* vartype = E | T | S
+
+$ENTRY Compile eB = <SET *FunNo 0> <SET *BracNo 0> =
+    <Opt (BOUNDS 3 2) <Group (((A 0) 2 3 4) () () A W) eB>>;
+
+Group  tA el = <Merge <Paths tA el>>;
+Paths {
+   tA (es) eg = (<Path tA es>) <Paths tA eg>;
+   tA = ;
+   };
+
+*  tA = (tN tV tM su sk)
+*  tN = (ta sb sf sn), sb,sf back and front ends of main hole; sn - free nel
+*        ta = a variable denoting the holder of current hole, e.g. (A n)
+*        se = A if Value is Actual for use at empty tail to make the result,
+*             V otherwise
+*  tV tM - see Expl
+*  su = A - path is closed from right, V - is not,
+*       E - as V but result is not needed;
+*  sk = S - path is closed from left, W - is not;
+* Parameter su is defined initially as A and changes to V
+* when entering the block which has the outer continuation.
+* Transplantations are allowed only in last strong expression.
+* When continuation does not start with L-expression su=E (empty result).
+
+Struct {
+     Attr = (N V M U K);
+     Tbel = (A B F N);
+     };
+
+PathMode {
+    (L eL) eT = L;
+    (R eL) eT = R;
+    sD eT = <PathMode eT>;
+    (G (eA) eB) eT = <PathMode eA>;
+    (FAIL) eT = R;
+    };
+
+Path {
+    tA eX sT = <Path tA eX>;
+    (tN tV tM su sk) (L eL) eT = <Mk-do sk>
+                <Path-l tN su <Exp-l tN tV tM eL> (eT)>;
+* Eval-expression is a single variable
+    (tN tV tM su sk) (R tv) tX eT, <IsVar tv> : T
+         = <VarHole tM tv> : sf sb
+         = <Path (<SETA tN Tbel (A F B) (tv sf sb)> tV tM su sk) tX eT>;
+    (tN tV tM su sk) (R eR)
+         = <Exp-r su sk tV tM eR> <Path-r (tN tV tM su sk)>;
+    (tN tV tM su sk) (R eR) eT
+         = <Exp-r  V sk tV tM eR> <Path-r (tN tV tM su sk) eT>;
+    (tN tV tM su sk) (G eg),
+                = <Block <Mk-do sk>> <Group (tN tV tM su W) eg>;
+    (tN tV tM su sk) (G eg) eT , <PathMode eT> : { L = V; R = E } : s.u1
+                = <Block <Mk-do sk>>
+               (ALT <Group (tN tV tM s.u1 W) eg>)
+                                <Path-r (tN tV tM su <After-do sk>) eT>;
+    (tN tV tM su S) eT = DO <Path (tN tV tM su SS) eT>;
+    tA NOT tS eT
+            = STAKE <Group <SETA tA Attr K W> (tS CUT (FAIL)) (CUT eT)>;
+    tA BIND (sD eX)    = DO <Path tA (sD eX)>;
+    tA BIND (sD eX) eT = DO <Path tA (sD eX) UNDO eT>;
+    tA UNDO eT = UNDO <Path tA eT>;
+    tA DO eT = <Path <SETA tA Attr K S> eT>;
+    tA STAKE eT = STAKE <Path tA eT>;
+    tA CUT eT = CUT <Path tA eT>;
+    tA (FAIL) = FAIL;
+* The result is not needed:
+    (tN tV tM E W) = <Endop E>;
+    (tN tV tM su W), <GETA tN Tbel N> : sn
+        = <MK-b SETB tN> EXP (<Movop su> sn <P1 sn>) <Endop su>;
+     };
+Path-l   tN su eP sn tV tM (eT) = <MK-b SETB tN> eP
+            <Path (<SETA tN Tbel N sn> tV tM su W) eT>;
+Path-r  {
+   (tN tV tM su S ) = <Endop su>;
+   (tN tV tM su SS) = <Endop su>;
+   (tN tV tM su sk) eT , <Mk-bnel tN> : t.N1
+      = (EVAL <IncGet *FunNo>) <MK-b BOUNDS t.N1> <Path (t.N1 tV tM su sk) eT>;
+   };
+
+* Comment on ALT :
+* (ALT xxx) EST reduces to xxx' where xxx' is obtained from xxx
+* by replacing END by EST at the end of each branch.
+* (ALT xxx) END reduces to xxx.
+* At execution (ALT xxx) yyy marks a level in the transition stack
+* by an appropriate line and continues the execution of xxx.
+* At END the last marked level and the relevant state is restored
+* and coresponding yyy is activated.
+* If xxx FAILs, then the whole (ALT xxx) yyy also $FAILs
+* (so ALT is transparent for the $FAIL)
+* To catch the FAIL use PUSHIMP at the beginning of xxx.
+* yyy can be either END or EST or (EVAL n) zzz.
+* (EVAL n) zzz evaluates the result expression just built
+* and prepares the result for further recognition by zzz.
+* Number n is a formal function name for continuation zzz (for tracing).
+
+* Make bounds and nel for the new level
+Mk-bnel  tN , <GETA tN Tbel N> : sn =
+                <SETA tN Tbel (A B F N) (A <P2 sn> <P3 sn> <P4 sn>)>;
+
+MK-b  sO tN = (sO <GETA tN Tbel F B>);
+IsVar { (sD sI) = <Oneof sD (S T E)>; e = F };
+Endop {
+   A   = EST;
+   sVE = END;
+   };
+
+Mk-do {  S = DO;  sk =;  };
+After-do { S = SS; sk = sk };
+Block { DO = DO; = BLOCK; };
+
+$ENTRY L-op {
+  sN = <Oneof sN (EXP EMP PS PSR TERM TERMR SYM SYMR)>;
+  (sN eA) =
+     <Oneof sN (CSYM CSYMR OEXP OEXPR OSYM OSYMR SYMS SYMSR SETB OTERM OTERMR)>;
+  };
+
+* Merge builds a tree of left parts
+Merge {
+   (eA) (eB) eX = <Merge (<Merge1 (eA) eB>) eX>;
+   (eA) = eA;
+   = FAIL;
+   };
+Merge1 {
+   ((BRANCH eX) eA) eB = (BRANCH eX) <Merge1 (eA) eB>;
+   (tx eA) tx eB , <L-op tx> : T = tx <Merge1 (eA) eB> ;
+   () = ;
+   (eA) eB = (BRANCH eA) eB;
+   };
+
+IncGet sn = <GET <SET sn <P1 sn>>>;
+
+Mk-map  ((ta sl) eL) (eR (tb sr)) = V (ta (() sl) eL eR (() sr));
+
+SETA {
+   tR ts sn tv = <SETN tR <POS <Struct ts> sn> tv>;
+   tR ts (tn em) (tv ew) = <SETA <SETA tR ts tn tv> ts (em) (ew)>;
+   tR ts () () = tR;
+   };
+
+GETA { tR ts sn em = <GETN tR <POS <Struct ts> sn>> <GETA tR ts em>;
+   tR ts = ;
+   };
+
+Varop {  sm tV (sD ti) , sm sD <Testvar tV (sD ti)> : {
+       L S so = (OSYM so);
+       L T so = (OTERM so);
+       R S so = (OSYMR so);
+       R T so = (OTERMR so);
+       L S () = SYM;
+       L T () = TERM;
+       R S () = SYMR;
+       R T () = TERMR;
+};     };
+
+
+Testvar {
+   (e1 (sD ti) so e2) (sD ti) = so;
+   (e1)               (sD ti) = ();
+   };
+
+*  Transfer to the next hole
+*  <Expl-next sn tV tM tH> => e.Ops s.n1 t.V1 t.M1
+*  (for detailes see comments to Expl function)
+Expl-next {
+   sn tV tM (()) = sn tV tM;
+   sn tV tM ((eP) (eH) eS) = (SETB <Getbs (eH)>)
+          <Expl L sn tV tM (eH) ((eP) eS)>;
+   sn tV tM (((eH) eP)) = (SETB <Getbs (eH)>)
+          <Exple sn tV tM (eH) (() eP)>;
+   };
+Getbs  ((eL (eA tl)) eT ((eB tr) eR)) = <Swap <Ends tr tl>>;
+Swap   s1 s2 = s2 s1;
+
+* Find in maps a hole the variable tv lies in
+VarHole (e1 (tV e2 (tv tn) e3) e4) tv = e3 e2 : (e tr) e : e (e tl)
+          = <Swap <Ends tr tl>>;
+
+* Compile pattern expression
+* <Expl sD s.nel t.Vars t.Map ((eL) eT (eR)) t.Holes>
+*        => e.Ops s.nel1 t.Vars1 t.Map1
+*  sD = L | R : which side to inspect;
+*  e.Ops - Accumulator for result program
+*  s.Nel - the first free nel;
+*  t.Vars = ( { (s.Type s.Ind) s.Nel }... ) ;
+*  t.Map - list of Maps, or subexpressions, labelled with nels:
+*        = ({ sa (t.Var e.Lexpr) }... ), where
+*             sa = A | V - actial/virtual discriminator
+*             t.Var = the owner variable of subexpression level
+*                     it may be also
+*                        (A sn), which is an argument pseudovariable
+*                     or (B sn), whisn is a bracket pseudovariable
+*             e.Lexpr = (t.Elem [e.Contents] s.Label) ...
+*             t.Elem = also may be (B sn) with e.Contents
+*                      where the e.Contents is in the original form
+*             t.Label = sn | (sn sm)
+*        where one Elem is () t.Label - a bound element
+*  (eL) eT (eR) - a hole, where
+*      eL = eR = (t.Elem [e.Cont] t.Label) ...
+*         - processed parts of initial hole from left and from right,
+*         eL starts and eR ends with, respectively, (t.var sl) and (t.var sr),
+*         which are formal elements, representing outer bounds of eR.
+*         t.var is an owner variable, whenever the hole is actual or virtual.
+*         sl, sr are nel's of outer bounds of the hole.
+*      eT - the rest (inner) part of the hole (not labelled),
+*  t.Holes - two list of holes = ((eP) eS), where
+*     eP - processed holes, eS - nonprocessed (by the 1-st pass of Expl)
+*  e.Ops - result RASL program: t.Op..., where
+*     t.Op = s.Op | (s.Op e.Args) .
+
+
+
+
+
+
+
+Exp-l { (ta sb sf sn) tV tM eP =
+             <Expl L sn tV tM (((ta sf)) eP ((ta sb))) (())>; };
+Expl  sD sn tV tM (eh) tH, sD : {
+* From the left
+   L, eh : {
+*   Hole is empty
+     (eL) (eR) = EMP <Expl-next sn tV <Apt tM <Mk-map (eL) (eR)>> tH>;
+*   Symbol
+     (eL) sa eT (eR)
+           = (CSYM sa) <Expl L <P1 sn> tV tM ((eL (sa sn)) eT (eR)) tH>;
+*   Parenthesis
+     (eL) (P eT) eU (eR) = tH : ((eP) eS) , <P1 sn> : sm ,
+        (B <IncGet *BracNo>) : tb
+        = PS <Expl L <P2 sn> tV tM (((tb sm)) eT ((tb sm)))
+             ((eP) ((eL (tb eT sn)) eU (eR)) eS)>;
+* E-variable
+     (eL) (E ti) eT (eR) , <Testvar tV (E ti)> : {
+*       Old E-variable
+        so = (OEXP so) <Expl L <P2 sn> <Apt tV (E ti) <P1 sn>> tM
+                                ((eL ((E ti) (sn <P1 sn>))) eT (eR)) tH>;
+*       New E-variable
+        () = <Expl R sn tV tM ((eL) (E ti) eT (eR)) tH>;
+        };
+*   Symbol/term variable
+     (eL) tv eT (eR) = <Varop L tV tv>
+        <Expl L <P1 sn> <Apt tV tv sn> tM ((eL (tv sn)) eT (eR)) tH>;
+     };
+* From the right
+   R, eh : {
+* Closed expression
+     (eL) (E ti) (eR) =
+        EXP <Expl-next <P2 sn> <Apt tV (E ti) <P1 sn>>
+                    <Apt tM <Mk-map (eL) (((E ti) (sn <P1 sn>)) eR)>> tH>;
+* Symbol
+     (eL) eT sa (eR) =
+            (CSYMR sa) <Expl R <P1 sn> tV tM ((eL) eT ((sa sn) eR)) tH>;
+* Parenthesis
+     (eL) eU (P eT) (eR), tH : ((eP) eS) , <P1 sn> : sm =
+        (B <IncGet *BracNo>) : tb
+        = PSR <Expl R <P2 sn> tV tM ((eL) eU ((tb eT sn) eR))
+             ((eP) (((tb sm)) eT ((tb sm))) eS)>;
+* E-variable
+     (eL) eT (E ti) (eR) , <Testvar tV (E ti)> : {
+*       Old E-variable
+        so = (OEXPR so) <Expl R <P2 sn> <Apt tV (E ti) <P1 sn>> tM
+                                ((eL) eT (((E ti) (sn <P1 sn>)) eR)) tH>;
+*       New E-variable - transfer to another hole
+        (), tH : ((eP) eS) = (BOUNDS <Getbs ((eL) (eR))>)
+           <Expl-next sn tV tM ((eP ((eL) eT (E ti) (eR))) eS)>;
+        };
+* Symbol/term variable
+     (eL) eT tv (eR) = <Varop R tV tv>
+        <Expl R <P1 sn> <Apt tV tv sn> tM ((eL) eT ((tv sn) eR)) tH>;
+};   };
+
+* Compile open e-variable
+* <Exple sn tV tM (eL) eT (eR) tH> => e.Ops s.n1 t.V1 t.M1
+Exple  sn tV tM ((eL) (E tk) eT (eR)) tH =
+     PLEN LEN <Expl L <P2 sn> <Apt tV (E tk) <P1 sn>> tM
+                 ((eL ((E tk) (sn <P1 sn>))) eT (eR)) tH>;
+
+* Compile result expression
+* <Exp-r sa t.Vars t.Maps e.Expr> => e.Ops
+*   sa = A | V | E , actual or not, i.e whether source expressions
+*              may be used as actual in building the result
+Exp-r  sa sk tV (eM) eX , {
+      { sk : W ; sa : #A } = <Expr sk tV (eM) eX>;
+      = <Expr sk tV <MkActMap (eM) eX>>;
+      } : eR t.M1 = eR;
+
+/*
+ <MkActMap (e.Map) e.R-expr> == (e.Map1) e.Rexpr1
+ prepares Map and R-expr:
+ 1) each subexpression in R-expr of the form (P bbb) which can be found
+    in e.Map as (B sn) is replaced by (B sn). The level bbb is further
+    excluded from the actual part.
+       <CutBrac (e.Map) e.R-expr (e.excl0)> == e.R-expr1 (e.excl1)
+ 2) Make an actual copy of e.Map and add it to e.Map. Move from top to
+    bottom starting from each A-variable, excluding B-branches found in
+    previous step and duplicate var-branches for each ordinary variable var.
+       <GetAct (e.Pos) (e.Map-V) (e.Neg)> == e.Map-A
+*/
+
+CutBrac {
+   tM (eX) = (eX);
+   tM (P eT) eR (eX), eT : t e, tM : (e1 (tv e2 ((B si) eT sn) e3) e4)
+          = (B si) <CutBrac tM eR (eX (B si))>;
+   tM (sD eT) eR (eX), sD:{P;K}, <CutBrac tM eT (eX)> : e.T1 (e.X1)
+            = (sD e.T1) <CutBrac tM eR (e.X1)>;
+   tM sA eR (eX) = sA <CutBrac tM eR (eX)>;
+* Cut out variable contraction for variables in R-expr as well
+   tM tA eR (eX), tA:(sD si) = tA <CutBrac tM eR (eX  tA )>;
+   };
+
+MkActMap (eM) eR, <CutBrac (eM) eR ()> : e.R1 (eX)
+   = (<GetAct (<ActList eM>) (eM) (eX)> eM) e.R1;
+
+* Make initial list of actual expressions
+ActList {
+    =;
+    V ((A sn) eX) eY = (A sn) <ActList eY>;
+    V tX eY = <ActList eY>;
+    };
+
+GetAct {
+    (tv ew) tM tX , <Oneof tv tX> : T = <GetAct (ew) tM tX>;
+    (tv ew) tM tX, tM : (e1 V (tv ea) e2) =
+          A (tv ea) <GetAct (ew <VarList ea>) tM <Apt tX tv>>;
+    (tv ew) tM tX = <GetAct (ew) tM tX>;
+    () tM tX = ;
+    };
+
+VarList {
+    ((sD ti) e) eX = (sD ti) <VarList eX>;
+    tA eX = <VarList eX>;
+    =;
+    };
+
+
+
+*   <Expr sa sk t.Vars t.Maps e.Expr> => e.Ops t.Maps1
+Expr {
+   sk tV tM (K eX) eY ,
+         <Expr sk tV tM <Narg eX>> : eP tM1 =
+         BL eP (BRACT <Actmod sk>) <Expr sk tV tM1 eY>;
+   sk tV tM = tM ;
+   sk tV tM eX, <Findsub A tM eX> : tb tR eY tM1 , tR : (t1 e2) =
+          <Genmov tb tR> <Expr sk tV tM1 eY>;
+   sk tV tM tX eY, <Isconst tX> : T =
+         (NS <Demeta tX>) <Expr sk tV tM eY>;
+   sk tV tM (P eX) eY ,
+         <Expr sk tV tM eX> : eP tM1 =
+         BL eP BR <Expr sk tV tM1 eY>;
+   };
+
+Narg {
+*  APPLY ex = ex;
+*  sw ex , <TYPE sw> : 'F' ez = <TABLE_VALUE &Ftable 'U' sw> ex;
+   ex = ex;
+   };
+
+Actmod { W = 1; sS = 2; };
+
+Genmov { (eb) (eX) = (<Movop eb> <Ends eX>); };
+
+LookAct {
+*  V tM = V;
+   (A si) tM = A;
+   tv tM , tM : (e1 A (tw e2 (tv e tn) e3) e4), tv : {
+        (B si) = <LookAct tw tM> tn;
+        t =      <LookAct tw tM>;
+   };   };
+
+Movop  {
+   V = MUL;
+   A = TPL;
+   A eB = CTPL (eB);
+   };
+
+Ends {
+   s1 = s1 s1;
+   (e1) e2 = <Ends e1 e2>;
+   e1 (e2) = <Ends e1 e2>;
+   s1 e2 s3 = s1 s3;
+   };
+
+Isconst {
+   (P e1) e2 = <Isconst e1 e2>;
+   (e1) e2 = F;
+   sa e1 = <Isconst e1>;
+   = T;
+   };
+
+* Demetacode object expression
+Demeta {
+   sa ex = sa <Demeta ex>;
+   (P ex) ey = (<Demeta ex>) <Demeta ey>;
+   =;
+   };
+
+* Find largest subexpression
+* <Findsub sa tM eX> => tv (eR) eY t.M1 | V (eR) eY tM
+*  sa = A | V, A means that actual expressions may be used
+*  tv - a variable which denotes a level, which contains the subexpression eR
+*  tM - maps of source expressions
+*  eX - desired result expression
+*  eR - beginning of eX, labelled as in tM
+*  eY - tail of eX
+*  t.M1 - new maps
+*  Function tries to find the largest eR, such that eX = eR eY and
+*        eR is a subespression of an expression from tM
+*        The actualness is preferred rather than the length.
+Findsub { sa (eM) eX , sa <Search sa (0 0 0) (eM) eX> : {
+* Actual element not found
+      A  0  0  0    = <Findsub V (eM) eX>;
+* One-term actual element found
+      A sl sp sm sn = <Findsub V (eM) eX>;
+* Subexpression found
+      sa sl sp sm er , <FIRST sl eX> : (eR) eY , sa : {
+      V = (V) (er) eY (eM);
+      A = <LAST sm eM> : (e1 (eP)) e2,
+              <LAST sp eP> : (e3) e4,
+          <LAST sl e3> : (tv e5) e6 =
+          <LookAct tv (eM)> : A es, es : { = ; e = GAP } : e.Plug
+             = (A es) (er) eY <PurAct <VarList e6> (e1 (tv e5 e.Plug e4) e2)>;
+  };  };  };
+
+* Purge out actual levels of deleted variables
+PurAct {
+   tv eV tM, tM : (e1 A (tv eX) e2) = <PurAct eV <VarList eX> (e1 e2)>;
+   tv eV tM = <PurAct eV tM>;
+   tM = tM;
+   };
+
+* <Search sa (sl sp sm er) eM (eX) = s.l1 s.p1 s.m1 e.r1
+*  sa = A | V - defines which group of subexpressions to use
+*  sl - length of current result
+*  sp - length of subexpression to the right of result
+*  sm - number of expressions to the right of that where the result is found
+*  er - the current result (only labels)
+*    sl sp sm identify the position of result in eM
+*    sl sp sm are initial (current) attributes
+*    s.l1 s.p1 s.m1 are atributes of result found with maximum length sl
+Search {
+  sa (sl ey) (e1 sa (tv e3 (tB e tN) eP) eM) tB eX ,
+    <Maxcom sa (eP) (eX)> : eR (e.P1) (e.X1) ,
+    <LENGTH X eR> : sL ,
+    <COMPARE sl sL> : {
+        '<' = <Search sa (sL <LENGTH e.P1> <LENGTH eM> tN eR)
+                                   (sa (tv eP) eM) tB eX>;
+        sZ = <Search sa (sl ey) (sa (eP) eM) tB eX>;
+        };
+  sa (ec) (eM) eX = ec;
+  };
+Maxcom {
+* E-variables should not extend V-subexpression
+  sa ((tA e tn) eQ) (tA eY), { sa:A; tn:s } = tn <Maxcom sa (eQ) (eY)>;
+  sa (eP) (eX) = (eP) (eX);
+  };
+
+* Peep-hole optimization
+Opt {
+* Each branch ends by END before, and by either END or EST after the Opt.
+    (BRANCH ea) eb = (BRANCH <Opt ea>) <Opt eb>;
+    (ALT ea) eb = <Alt <Opt ea> (<Opt eb>)>;
+    (BOUNDS sa sb) ex = <Bounds (sa sb) <Opt ex>>;
+    (SETB   sa sb) ex = <Setb   (sa sb) <Opt ex>>;
+    (CTPL (eB) ea) ex = <CHKB eB> <Opt (TPL ea) ex>;
+    (TPL sa sb) ex , <P1 sa>:sb = (TPLE sb) <Opt ex>;
+    (MUL sa sa) ex = (MULT sa) <Opt ex>;
+    (MUL sa sb) ex , <P1 sa>:sb = (MULE sb) <Opt ex>;
+    (CSYM sa) (CSYM sb) ex = <Opt (SYMS 2 sa sb) ex>;
+    (SYMS sn ea) (CSYM sb) ex = <Opt (SYMS <P1 sn> ea sb) ex>;
+    (SYMR sa) (SYMR sb) ex = <Opt (SYMSR 2 sa sb) ex>;
+    (SYMSR sn ea) (SYMR sb) ex = <Opt (SYMSR <P1 sn> ea sb) ex>;
+    (NS ta) (NS tb) ex = <Opt (TEXT 2 ta tb) ex>;
+    (TEXT sn ea) (NS tb) ex = <Opt (TEXT <P1 sn> ea tb) ex>;
+    BL (NS ta) ex = (BLNS ta) <Opt ex>;
+    PLEN LEN PS         ex = PLENS LENP       <Opt ex>;
+    PLEN LEN (SYM sc)   ex = PLENS (LENS sc)  <Opt ex>;
+    PLEN LEN (OVSYM so) ex = PLENS (LENOS so) <Opt ex>;
+    ta ex = ta <Opt ex>;
+    =;
+    };
+
+Alt {
+        eA (EST) = eA;
+        eA (eB) = (ALT eA) eB;
+        };
+
+Bounds {
+   (sa sb) (SETB sa sb) ex = ex;
+   tb (BRANCH ex) ey = (BRANCH <Bounds tb ex>) <Bounds tb ey>;
+   tb (ALT    ex) ey = (ALT    <Bounds tb ex>) <Bounds tb ey>;
+   tb STAKE ex = STAKE <Bounds tb ex>;
+   tb CUT   ex = CUT   <Bounds tb ex>;
+   tb BLOCK ex = BLOCK <Bounds tb ex>;
+   tb DO    ex = DO    <Bounds tb ex>;
+   tb ex = ex;
+   };
+
+Setb {
+   (sa sb) (SETB sc sd) ex = (SETB sc sd) ex;
+   (sa sb) ex = (SETB sa sb) ex;
+   };
+
+CHKB { sa ex = (CHKB sa) <CHKB ex>; = };
+
+Oneof {
+   tA (e1 tA e2) = T;
+   tA (e1) = F;
+   };
+
+Apt { (eT) eA = (eT eA); };
+
+P1 { sx = <ADD sx 1>; };
+P2 { sx = <ADD sx 2>; };
+P3 { sx = <ADD sx 3>; };
+P4 { sx = <ADD sx 4>; };

@@ -1,0 +1,223 @@
+************************************************************************
+*  R E F A L - 6             Copyright (C) 1992 by IPS-AN              *
+************************************************************************
+* REFAL-C    compiler module:                                          *
+*       rslex.ref  - lexical analysis module                           *
+************************************************************************
+
+$EXTERN ERR, WNG, Flag, Inp, Inpa;
+
+* Skip a blank, a tab, a comment etc.
+$ENTRY Skipc {
+   ' ' e1 = <Skipc e1>;
+   '        ' e1 = <Skipc e1>;
+   '\f' e1 = <Skipc e1>;
+   '\n' e1 = <Skipc <Inpa (e1)>>;
+   '//' e1 = <Skipc2>;
+   '/*' e1 = <Skipc <Skipcom e1>>;
+   '--' e1 = <Skipc2>;
+   sx sy e1 = sx sy e1;
+   sx = sx;
+   = <Skipc2>;
+   };
+
+Skipcom {
+   0 e1 = <ERR "Unpaired comment /*"> 0;
+   '*/' e2 = e2;
+   sx e1 = <Skipcom e1>;
+   = <Skipcom <Inp>>;
+   };
+
+Skipc2  , <Inp> : {
+   '*' e1 = <Skipc2>;
+   = <Skipc2>;
+   e1 = <Skipc e1>;
+   };
+
+$ENTRY SkipLine {
+   e1 '\n' e2 = <Inpa (e1)>;
+   e1 = ;
+   };
+
+$ENTRY InsSC  ex = ex;
+
+$ENTRY Word { e1 = <Worda <TYPE <Skipc e1>>> };
+Worda {
+    'L' sc ex = <Word1 sc ex>;
+    'l' ex = <ERR (ex) "Word is reserved as variable"> '*' ex;
+    'O!' ex = <Word1 '!' ex>;
+    'O?' ex = <Word1 '?' ex>;
+    st sy ex = <Words sy ex>;
+    };
+Word1 { sc ex = <Index2 ('.' sc) <TYPE ex>> };
+
+Case {
+  sF   eX = eX;
+  (eZ) eX = <UPPER eX>;
+  };
+
+Words {
+   '\"' e1 = <StrWord <String '\"' () e1>>;
+   s1 e2 = <ERREXP "word" s1 e2> '*' s1 e2;
+   = <ERREXP "word"> '*';
+   };
+
+StrWord {
+    () ex = '*' ex;
+    (es) ex = <IMPLODE es> ex;
+    };
+
+
+
+
+
+
+
+
+$ENTRY String {
+   sx (e1) sx e2 = <String1 sx (e1) e2>;
+   sx (e1) '\\' sb ea , <Cvspec '\\' sb ea> : sc ed = <String sx (e1 sc) ed>;
+   sx (e1) '\\' = <String sx (e1) <Inp>>;
+   sx (e1) 0 e2 = <ERR (e1) "Unexpected end of file">;
+   sx (e1) sy sa e2 = <String sx (e1 sy) sa e2>;
+   sx (e1) sy = <ERRUNP sx> () ;
+   sx (e1) = <ERRUNP sx> () ;
+   };
+String1 {
+   sx ()  e1 = (sx) e1;
+   sx (e1) sx e2 = <String sx (e1 sx) e2>;
+   sx (e1) e2 = (e1) e2;
+};
+Cvspec {
+   sy ea, <Flag '5'> : (eZ) = sy ea;
+   sy sy  ez = sy ez;
+   sy ''  ez = '' ez;
+   sy '\"' ez = '\"' ez;
+   sy 'n' ez = '\n' ez;
+   sy 't' ez = '\t' ez;
+   sy 'v' ez = '\v' ez;
+   sy 'b' ez = '\b' ez;
+   sy 'r' ez = '\r' ez;
+   sy 'f' ez = '\f' ez;
+   sy 'x' ez = <Hexchar ez>;
+   sy sa  ez = <Digits 0 () <TYPE sa ez>>;
+   };
+
+Hexchar {
+   t1 t2 eZ , <Hexdigit t1> <Hexdigit t2> : {
+      T sN T sM = <CHR <ADD <MUL sN 16> sM>> eZ;
+      sx sN sy sM = '\x00' <ERR (eZ) "Illegal hex code">;
+      };
+   eZ = '\x00' <ERR (eZ) "Illegal hex code">;
+   };
+
+Hexdigit { sX , <TYPE sX> : {
+      'D' ez = T <NUMB sX>;
+      st ez , <UPPER sX> : {
+       'A' = T 10;
+       'B' = T 11;
+       'C' = T 12;
+       'D' = T 13;
+       'E' = T 14;
+       'F' = T 15;
+       sZ  = F 0;
+};  }; };
+
+Number {
+   (e0) 'D' e2 = <Number1 (e0) e2>;
+   (e0) sT eX = <ERR (eX) "No number after " e0> 0 eX;
+   };
+
+Number1 { (e1) sx e2 = <Number1a (e1 sx) <TYPE e2>>};
+Number1a {
+   (e1) 'D' e2 = <Number1 (e1) e2>;
+   (e1) st 'x' e2 , e1 : {
+      '0' = <Hexnumb 0 e2>;
+      ez sy = <NUMB e1> 'x' e2;
+      };
+   (e1) st e2 = <NUMB e1> e2 ;
+   };
+Hexnumb {
+   sN sX eZ , <Hexdigit sX> : T sM = <Hexnumb <ADD sM <MUL sN 16>> eZ>;
+   sN eZ = sN eZ;
+   };
+
+Digits {
+   3 (ed) st ez = <CHR <NUMB ed>> ez;
+   sn (ed) 'D' sa ez = <Digits <ADD sn 1> (ed sa) <TYPE ez>>;
+   sn (  ) st sa ez = '\\' sa ez <WNG (ez) "Illegal character after \\ ">;
+   sn (ed) st sa ez = <CHR <NUMB ed>> sa ez;
+   };
+$ENTRY Isdelim { sx = <Oneof sx ('=,:{};'0)> };
+
+$ENTRY Index {
+   '.' e1 = <Index2 ('.') <TYPE e1>>;
+   e1 = <Index2 ('*') <TYPE e1>>;
+   };
+
+* Index or tail of word provided first symbol is recognized
+
+Index1 {
+* Delete this line to admit long indices without '.'
+*  ('*') sl ea = sl ea;
+   (sT ei) sl ea = <Index2 (sT ei sl) <TYPE ea>>;
+   };
+
+Index2 {
+   (ei) 'L' ex = <Index1 (ei) ex>;
+   (ei) 'l' ex = <Index1 (ei) ex>;
+   (ei) 'D' ex = <Index1 (ei) ex>;
+   (ei) 'O-' ex = <Index1 (ei) '-' ex>;
+   (ei) 'O_' ex = <Index1 (ei) '_' ex>;
+   (ei) 'O!' ex = <Index1 (ei) '!' ex>;
+   (ei) 'O?' ex = <Index1 (ei) '?' ex>;
+   (ei) 'O' sy ex = <Index3 (ei) sy ex>;
+   (ei) st ex = <Index3 (ei) ex>;
+   };
+
+Index3 {
+   (sT) ex = '*' ex;
+   (sT si) ex = <Compind si> ex;
+   ('.' si ej) ex = <Compind si ej> ex;
+   ('*' si ej) ex, <Flag '5'> : {
+       (eZ) = <Compind si> ej ex;
+       sZ   = <Compind si ej> ex;
+   };  };
+
+* To enable/disable switch /U toggle next two lines
+Compind { ei = <IMPLODE ei> };
+*Compind { ei = <IMPLODE <Case <Flag 'U'> ei>> };
+
+$ENTRY Oneof {
+  sA (e1 sA e2) = T;
+  sA (e1) = F;
+  };
+
+ERREXP { sa ex = <ERR (ex) "Expected " sa> };
+ERRUNP { sa ex = <ERR (ex) "Unpaired " sa> };
+
+$ENTRY Getelem {
+    'O)'  ex = Brac ')' ex;
+    'O('  ex = Brac '(' ex;
+    'O<'  ex = Brac '<' ex;
+    'O>'  ex = Brac '>' ex;
+    'O_'  ex = Var 'e' <Index ex>;
+    'O.'  ex = Var 's' <Index ex>;
+    'O\'' ex = String <String '\'' () ex>;
+    'O\"' ex = Symbol <Words '\"' ex>;
+    'O' sc ex, sc : {'='; ','; ':'; '{'; '}'; ';'} = Delim sc ex;
+    'O' sc ' ' ex , sc : { '+'; '-'; '*'; '&' } = Symbol <IMPLODE sc> ex;
+    'O*'  ex = Box <Word ex>;
+    'O&'  ex = Box <Word ex>;
+    'O!'  ex = Symbol <Word1 '!' ex>;
+    'O?'  ex = Symbol <Word1 '!' ex>;
+    'O+'  ex = Symbol <Number ('+') <TYPE ex>>;
+    'O-'  ex = Symbol <Number ('-') <TYPE ex>>;
+    'O' sc ex , sc : {'/'; '%'; '^'; '|'; '~'} = Symbol <IMPLODE sc> ex;
+    'O' sc ex = Other sc ex;
+    'l' sc ex = Var 't' <Word1 sc ex>;
+    'L' sc ex = Symbol <Word1 sc ex>;
+    'D' sc ex = Symbol <Number1 () sc ex>;
+    'N' 0 ex = Delim 0 ex;
+    };
+

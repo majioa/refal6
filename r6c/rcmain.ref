@@ -1,0 +1,174 @@
+************************************************************************
+*  R E F A L - 6       Copyright (C) 1992 by Arkady Klimov             *
+*       rcmain.ref  - main module of refal compiler                    *
+************************************************************************
+
+$EXTBOX SYSINFO,MODTABLE;
+$EXTBOX Lineno, Ftable, Rest, Modname, Typename;
+$EXTBOX Extern, Errfl;
+$EXTERN Inifls;                            /* From rclist  */
+$EXTERN Getdef, Testdef, Extdef, Use, Def; /* From rssyn   */
+$EXTERN ERR, ERR0, Flag, Setflags;         /* From rsserv  */
+$EXTERN CompFile, CompMem;                 /* From rcout */
+$EXTERN SWAP;                              /* From i */
+
+$ENTRY GO { =
+      <PROUT "Refal-6 Compiler. Copyright (C) 1993 by Ark. Klimov">
+      <COMP <GETV <SHIFT <GET *SYSARG> 0 -2>>> =
+        <Flag 'M'> : { (eZ) = ; tZ = <EXIT> };
+   };
+* Entry to call the compiler from refal
+$ENTRY COMP eA = <Init <Regs eA>>;
+$ENTRY "comp" eA = <COMP eA>;
+
+$ENTRY CL eA = <COMP eA "/M">;
+$ENTRY "cl" eA = <CL eA>;
+
+Regs {
+   = ()
+    <PROUT>
+    <PROUT "Command line syntax:">
+    <PROUT "   rf c [switches] file1 file2 ...">
+    <PROUT "switch /L - make a listfile FILEi.RFL">
+    <PROUT "switch /M - compile to memory">
+    <PROUT "switch /U - uppercase words in source text">
+    <PROUT "switch /5 - no special meaning for BackSlash in strings">
+    <PROUT "switch /W or /N or /S - "
+                                "make code in word or number or symbol format">
+    <PROUT "switch /V or /C - make code for vector or chain format">
+    <PROUT "switch /Xxxx - output file with extension .xxx">
+    <PROUT " SET RESTYPE = XXX redefines extension of result: FILEi.XXX">
+    <PROUT "switch /Yyy  - use compiler module RSSYNTyy.RSW for parsing">;
+   e1 tA e2, <GETV tA> : '/' sd eX , <UPPER sd> : sD = (sD eX) <Regs e1 e2>;
+   e1 = (e1);
+   };
+
+Init { eR (eF) = <Setflags eR> <Trfiles eF> };
+
+Trfiles {
+   t1 e2 = <Trfile <GETV t1>> <Trfiles e2>;
+   = ;
+   };
+Trfile ef = <Opinp <Mkext <LOWER ef> ()>> <Inifls> : {
+    e1 F e2 =;
+    e1 = <Compmod <Parse>>;
+    };
+
+
+
+
+Mkext {
+   e1 '.' (e2) = e1 (e2);
+   e1 sx (e2) , <Oneof sx ('/\\')> : F = <Mkext e1 (sx e2)>;
+   e1 (e2) = e1 e2 ('ref');
+   };
+
+Opinp { eN (eX) , <OPEN 'r' 12 eN '.' eX> : {
+        T , <SETV *Modname eN> <SETV *Typename eX>
+        <PROUT eN'.'eX':'> : ez
+          = <Oplst <Flag 'L'> eN '.rfl'>;
+    F = F <ERR0 "Unable to open " eN '.' eX>;
+};  };
+
+Oplst {
+   () e1 , <OPEN 'w' 5 e1> : {
+          T = (e1);
+          F = F <ERR0 "Unable to open " e1>;
+          };
+*     Erase old RFL-file
+   tZ e1 = <ERASE e1>;
+   };
+
+Parse = <CLOAD *Getdef <SyntModName>>
+      = <Ptime "Parsing time = " *Syntax>;
+
+SyntModName = <Flag 'Y'> : { F = "rssynt"; (ex) = <SETV X 'rssynt' ex> };
+
+Syntax { , <SETV *Lineno 0> <MK_TABLE *Ftable> <SETV *Extern>
+           <SETV *Errfl> <SETV *Rest>
+           = <GetMod () > <Testdef> };
+
+* <GetMod (e.Stack) e.Prog> => e.Prog'
+* Each element of stack is (t.Extern t.Ftable e.Prog)
+*  = a state when statement $MODULE was encountered
+GetMod  (e.Stack) e.Prog , <Getdef> : {
+     0 , e.Stack : {
+        = <Extdef> : {
+           = e.Prog;
+           ez = <Testdef> (Module <Swaps () ()> e.Prog);
+           };
+        eZ = <ERR "Unexpected end of file. $END is expected">;
+        };
+     (Module ex)
+           = <GetMod (e.Stack (<Swaps () ()> e.Prog)) >;
+     (End ex) , e.Stack : {
+        = <ERR "Unbalanced $END"> = <GetMod (e.Stack) e.Prog>;
+        eS (t.Ext t.Tbl e.Pr) = <Testdef>
+           = <Extdef> : e.Exdf
+           = <GETV *Extern> : e.Ext1
+           = <GetMod (eS) e.Pr (Module <Swaps t.Ext t.Tbl>
+* Use and Def deal with new environment, changed by Swaps
+                         <Use e.Ext1> <Def e.Exdf> e.Prog)>;
+        };
+     eF = <GetMod (e.Stack) e.Prog eF>;
+     };
+
+$ENTRY Swap sV (eA) = (<SWAP sV eA>);
+Swaps tE tT = <Swap *Extern tE> <Swap *Ftable tT>;
+
+
+Modext , {
+   <Flag 'X'> : (eX) = '.' eX;
+   <GETENV RESTYPE> : t1 e2 = '.' t1 e2;
+   <GETS *SYSINFO 1 2> : {
+          VECTOR NUMBER = '.rnx' ;
+          VECTOR WORD   = '.rex' ;
+          eX            = '.rsx' ;
+   };     };
+
+Ptime sT tF = <CSeconds> <tF> <CSeconds> : sB eP sE =
+     <PROUT sT <Tosec <SYMB <SUB sE sB>>> " seconds"> = eP;
+
+Tosec {
+   e1 s2 s3 s4 = e1 s2 '.' s3 s4;
+   e1 = <Tosec '0' e1>;
+   };
+
+Compmod {
+   eP , <GETV *Errfl> : = <PROUT "No syntax errors">
+*   <DELETE <GETV <SyntModName>>>
+    <CLOAD *CompFile "rccomp">
+    = <Flag 'M'> : {
+        F = <GETV *Modname> <Modext> : eN =
+           <OPEN 'w' 4 eN> : {
+           T = <WRITELN! 4 START <SETV X eN>>
+              <Ptime "Compilation time = " (*CompFile eP)>
+              <CLOSE 4> =;
+           F = <ERR "Unable to open " eN>;
+           };
+        (eZ) = <Ptime "Compilation time = " (*CompMem eP)> : eL,
+               <TABLE_VALUE *MODTABLE 'U' <SETV X <GETV *Modname> '.'>> : sR
+               = <SETV sR <GETV sR> eL>;
+        };
+   eP = ;
+   };
+
+CSeconds { = <TIME_ELAPSED> };
+
+CLOAD { sF tM , <MODE sF> : {
+    EMPTY = <LOAD tM>;
+    sZ = ;
+};  };
+
+CLOSE { e1 = <CLOSE_CHANNEL e1> };
+ERASE { e1 = <ERASE_FILE e1> };
+OPEN { sM sC eN = <OPEN_FILE sC eN sM> };
+PROUT { eX = <PRINTLN! *STDOUT eX> };
+WORD? sF , <CONST sF> : T, <MODE sF> : STRING;
+
+Oneof {
+   sA (e1 sA e2) = T;
+   sA (e1) = F;
+   };
+
+

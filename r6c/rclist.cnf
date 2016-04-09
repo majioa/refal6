@@ -1,0 +1,4 @@
+( (ENTRY rb_Builtcd (T ('*sx')) ('*sy') )
+    Builtcd ('*sx') ('*sy')
+)
+(CONF Flsname ())

@@ -1,0 +1,19 @@
+
+*   The syntax of the function body syntax tree:
+
+* Notation:  x | y  means x or y
+*            x* means repetition of x zero or more times
+
+* function_body = path*
+
+* pattern = (L expr)
+* result  = (R expr)
+* block = (G path* )
+* path = ( statement* )
+* action = pattern | result | block
+* statement = action | NOT [action] | STAKE | CUT | DO | BIND [pattern]
+
+* expr = term*
+* term = symbol | (P expr) | (vartype index) | (K expr)
+* index = symbol
+* vartype = E | T | S

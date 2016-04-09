@@ -1,0 +1,303 @@
+************************************************************************
+*  R E F A L - 6             Copyright (C) 1992 by Arkady Klimov       *
+************************************************************************
+* REFAL-C    compiler module:                                          *
+*       rssynt.ref  - input and syntax check module                    *
+************************************************************************
+$EXTBOX
+   Lineno  /* Line number */,
+*  Errfl   /* Flag: error was detected */,
+   Skipno  /* Line number to be referred to in error messages */,
+   Ftable  /* Table for names (functions, boxes, etc) */,
+   Extern  /* Extern symbol list */,
+*  Entry   /* Entry occurance indicator */,
+   Rest    /* A line to be processed */;
+$BOX Ind   /* Generator of new indices */;
+
+$EXTERN ERR, WNG, Usefls, Builtcd, Addl;
+$EXTERN Skipc, SkipLine, String, Isdelim, Word, Oneof, Getelem, InsSC;
+
+$ENTRY Getdef { = <SETV *Ind 0> = <Getdefa <Skipc <GETV *Rest>>> };
+Getdefa {
+  0  ex = 0;
+  '$' eA , <Word eA> : sK eX , {
+     <Oneof sK (EXTBOX EXTRN EXTERN EXTERNAL)> : T = <Ext <Lst N eX>>;
+     <Oneof sK (FUNC ENTRY)> : T = <Fname (sK) <Word eX>>;
+         sK : USE = <Usefls <Lst N eX>>;
+* Key words MODULE and END are followed by a comment up to end of line
+     sK : MODULE = (Module) <Continue <SkipLine eX>>;
+     sK : END    = (End) <Continue <SkipLine eX>>;
+     = <Dcl <Ckey sK> <Lst V eX>>;
+     };
+  e1 = <Fname (FUNC) <Word e1>>;
+  };
+
+* Parse declaration list;
+*  sD = N or V (values allowed)
+Lst sD e1 = <Lst1 sD <Word e1>>;
+Lst1 {
+   sD '*' e1 = <Skip0 e1>;
+   sD sx e1 = <Lstv sD sx e1> : tR e3 = tR <Lst2 sD e3>;
+   };
+Lstv {
+   N sx e1 = sx <Skipc e1>;
+   sD sx e1 = <Pexpr R ('*') () e1> : (er) () e2 = (sx er) e2;
+   };
+Lst2 {
+   sD ',' e1 = <Lst sD e1>;
+   sD ';' e1 = <Continue e1>;
+   N  sa e1 = <Lst N sa e1>;
+   sD sa e1 = <ERREXP ", or ;" sa e1> <Lst1 sD '*' sa e1>;
+   };
+
+Ext { ex = <Addl *Extern ex>; };
+
+Expr { (X ex) ey = (Expr ex) <Expr ey>; = };
+
+Dcl {
+   sk (sa er) ey = {sk : EXEC; <Def sa>} = (Var sk <Boxg sa> er) <Dcl sk ey>;
+   sk = ;
+   };
+
+Ckey  sK , {
+  <Oneof sK (BOX VECTOR CHAIN EMPTY STRING CHANNEL TABLE EXEC)> : T = sK;
+  <Boxg sK>;
+  };
+
+Continue { ex = <SETV *Rest ex> = };
+
+Skip0 ex = <Skip ('*') ('*') ex>;
+
+Skip { e1 , <SETV *Skipno <GETV *Lineno>> = <Skip1 e1> };
+
+Skip1 { (e1) (e2) e3 = <Skip1a (e1) (e2) <Skipc e3>>};
+Skip1a{
+   (e1) (e2) '(' ex = <Skip1 (e1) ((e2)) ex>;
+   (e1) (e2) '<' ex = <Skip1 (e1) ('$'(e2)) ex>;
+   (e1) (eZ) ')' ex , eZ : {
+         (e2) e3    = <Skip1 (e1) (e2 (e3)) ex>;
+          '*' e2    = <ERRUNP ')' ex> <Skip1 (e1) (eZ) ex>;
+         '$'(e2) e3 = <ERRUNP ')' ex> <Skip1 (e1) (eZ) ex>;
+         };
+   (e1) (eZ) '>' ex , eZ : {
+         '$'(e2) e3 = <Skip1 (e1) (e2 '*'(e3)) ex>;
+         '*' e2     = <ERRUNP '>' ex> <Skip1 (e1) (eZ) ex>;
+         (e2) e3    = <ERRUNP '(' ex> <Skip1 (e1) (e2 (e3)) '>' ex>;
+         };
+   (e1) (e2) '\'' ex = <Skips (e1) (e2) <String '\'' () ex>>;
+   (e1) (e2) '\"' ex = <Skips (e1) (e2) <String '\"' () ex>>;
+   (e1) ('*' e2) '{' ex = <Skip1 ((e1 e2)) ('*') ex>;
+   ((e1) e2) ('*'e3) '}' ex = <Skip1 (e1 (e2 e3)) ('*') <InsSC ex>>;
+   ('*' e1) ('*' e2) '}' ex = <ERRUNP '}' ex> <Skip1 ('*' e1) ('*' e2) ex>;
+   ('*' e1) (e2) ';' ex = <Continue ex>;
+   ('*' e1) ('*' e2) 0 ex = ;
+   ((e1) e2) ('*' e3) 0 ex = <ERR "Unpaired { for line " <GETV *Skipno>>
+           <Skip1 (e1 (e2)) ('*' e3) 0>;
+   (e1) (e2) sx e3 = <Skip2 (e1) (e2) sx e3>;
+   };
+
+Skip2 {
+   (e1) (e2) sx e3, <Isdelim sx> : T, e2 : {
+         '$'(ea) eb = <ERRUNP '<'e3> <Skip1 (e1) (ea (eb)) sx e3>;
+         (ea) eb = <ERRUNP '('e3> <Skip1 (e1) (ea (eb)) sx e3>;
+         '*' ea = <Skip1 (e1) (e2 sx) e3>;
+         };
+   (e1) (e2) sa ex = <Skip1 (e1) (e2 sa) ex>;
+   };
+
+Skip3 { (e1) (e2) sa ex = <Skip1 (e1) (e2 sa) ex> };
+
+Skips { (e1) (e2) ta ex = <Skip1 (e1) (e2 ta) ex> };
+
+Boxg {
+   '*' e1 = '*' e1;
+   sx e1 = <TABLE_VALUE *Ftable 'U' sx> e1;
+   };
+
+Fname {
+   (sk) '*' e1 = <ERR (e1) "Invalid function name"> <Skip ('*')('*') e1>;
+   (sk) sf e1 = <Fnamea sk sf <Skipc e1>>;
+   };
+
+Fnamea {
+   sk sf eA = <Prefix sk sf> <Def sf> = <Func <Boxg sf> <Sent L () () eA>>;
+   };
+
+Prefix {
+   FUNC   sf =;
+   ENTRY  sf = <Addl *Extern sf> /* <SETV *Entry T> */;
+   };
+
+Func {
+   sf '*' (e1) (e2) ex = <Skip (e1) (e2) ex>;
+   sf (es) ex = (Func sf <Mkgroup es>) <Continue ex>;
+   };
+
+Mkgroup {
+   (G eb) = eb;
+   es = (es);
+   };
+
+Cbody { sD (ev) eX = <Cbodya sD (ev) <Skipc eX>>};
+Cbodya {
+   sD (ev) '}' e1 = (<InsSC e1>) '+';
+   sD (ev) sa ex = <Cbs sD (ev) <Senta sD () (ev) sa ex>>;
+   };
+
+Cbs {
+   sD (ev) '*' (e1) (e2) ex = (((e1))(e2) ex) '*';
+   sD (ev) (e1) ex = (e1) <Cbody sD (ev) ex>;
+   };
+
+Sentx { sD (es) (er) (ev) ex = <Sent 0 (es (sD er)) (ev) ex> };
+Sent { sD (es) (ev) eX = <Senta sD <Check (es) (ev)> <Skipc eX>>};
+Senta {
+   sD (es) (ev) '/' ex = <Sent sD (es CUT) (ev) ex>;
+   sD (es) (ev) '\\' ex = <Sent sD (es STAKE) (ev) ex>;
+   sD (es) (ev) '#'  ex = <Sent sD (es ((NOT sD) (ev))) (ev) ex>;
+        0 (es) (ev) ','  ex = <Sent  R (es) (ev) ex>;
+        0 (es) (ev) '='  ex = <Sent  R (es DO) (ev) ex>;
+        0 (es) (ev) '::' ex = <Sent  L (es BIND) (ev) ex>;
+        0 (es) (ev) ':'  ex = <Sent  L (es) (ev) ex>;
+        0 (es) (ev) ';'  ex = (es) ex;
+        0 (es) (ev) '}'  ex = (es) '}' ex;
+        0 (es) (ev) sa ex = <Serr ", : = ; or }" sa ex>;
+   sD (es) (ev) '{' ex = <Sentg (es) (ev) <Cbody sD (ev) ex>>;
+   sD (es) (ev) sa ex = <Sentx sD (es) <Pexpr sD ('*') (ev) sa ex>>;
+   sD sM (ev) ex = <ERR (ex) sM> '*' ('*') ('*') ex;
+   };
+
+Sentg {
+   (es) (ev) eb (ex) '*' = '*' ex;
+   (es) (ev) eb (ex) '+' = <Sentx G (es) (eb) (ev) <Skipc ex>>;
+   };
+Serr  se ex = <ERRDEL se ex> '*' ('*') ('*') ';' ex;
+
+
+Check  { ts tv, ts : {
+        (eA tB tC) , tB : {
+                BIND, tC : {
+                        (sT eL) = ts tv;
+                        tZ = "Pattern or block is expected after ::" tv;
+                        };
+                ((NOT sD) t.ov) , tC : {
+                        (sT eX) = (eA NOT tC <Ckillr sD>) t.ov;
+                        tX = "Pattern or result or block is expected after #" tv;
+                        };
+                tZ = ts tv;
+                };
+        (eA) = ts tv;
+};        };
+
+* Kill current result (in case of:  ... , #<...> : ...
+Ckillr {
+   R = (R );
+   sD =;
+   };
+
+* Parsing expression
+*   <Pexpr sD (e.Prep) (e.Vars) e.Line> == (e.Res) s.Delim e.Tail
+Pexpr { sd (ea) (ev) ex = <Pexpra sd (ea) (ev) <Getelem <TYPE <Skipc ex>>>>};
+Pexpra {
+   sD (ea) (ev) Brac '(' ex = <Pexpr sD ((ea)) (ev) ex>;
+   sD (ea) (ev) Brac ')' ex, ea : {
+         (e1) e2 = <Pexpr sD (e1 (P e2)) (ev) ex>;
+         sc e1 = <ERRUNP ')'ex> <Pexpr sD (sc e1) (ev) ex>;
+         };
+   sD (ea) (ev) Brac '>' ex, ea: {
+         '$' (e1) e2 = <Pexpr sD (e1 (K <Cfun <TYPE e2>>)) (ev) ex>;
+         (e1) e2 = <ERRUNP '(' ex> <Pexpr sD (e1 (e2)) (ev) '>' ex>;
+         '*' e1 = <ERRUNP '>' ex> <Pexpr sD ('*' e1) (ev) ex>;
+         };
+   sD (e1) (ev) Brac '<' ex , sD : {
+       R = <Pexpr sD ('$'(e1)) (ev) ex>;
+       L = <ERR (ex) "Invalid character < in the pattern">
+              <Pexpr sD (e1)(ev) ex>;
+       };
+   sD (e1) (ev) Var su '*' ex , sD : {
+           R = <ERR (ex) "Missing index"> <Pexpr sD (e1)(ev) ex>;
+           L = <Pexpr sD (e1 <Mk-var su <Nind>>) (ev) ex>;
+           };
+   sD (e1) (ev) Var su si ex
+       = <Pexpr sD (e1 <Mk-var su si>) <Testvar sD (su si) (ev) ex>>;
+   sD (e1) (ev) Delim st ex, e1 : {
+       '*' ea     = (ea) (ev) st ex;
+       (ea) eb    = <ERRUNP '(' ex> <Pexpr sD (ea (eb)) (ev) st ex>;
+       '$' (ea) eb = <ERRUNP '<' ex> <Pexpr sD (ea (eb)) (ev) st ex>;
+       };
+   sD (e1) (ev) Symbol st   ex = <Pexpr sD (e1 st) (ev) ex>;
+   sD (e1) (ev) Box    st   ex = <Pexpr sD (e1 <Boxg st>) (ev) ex>;
+   sD (e1) (ev) String (es) ex = <Pexpr sD (e1 es) (ev) ex>;
+   sD (e1) (ev) Other st ex = <ERR (ex) "Invalid character "st>
+              <Pexpr sD (e1)(ev) ex>;
+   };
+
+
+
+Testvar {
+   sD (sx si) (ea (sy si) eb) ez , sx : {
+      sy = (ea (sy si) eb) ez;
+      sw = (ea (sy si) eb (sx si)) ez
+           <ERR (ez) "Different type variables with equal index: "
+                  sx '.' si " and " sy '.' si>;
+      };
+   L (sx si) (ea) ez = (ea (sx si)) ez;
+   R (sx si) (ea) ez = (ea) ez
+         <ERR (ez) "Variable " sx '.' si " is undefined">;
+   };
+
+Mk-var {
+        'v' ti = (T ti) (E ti);
+        su ti = (<SETV X <UPPER su>> ti)
+        };
+
+Nind { , <GETV *Ind> : sN , <SETV *Ind <ADD sN 1>> = sN };
+
+$ENTRY Def {
+   sx e1 = <Def1 sx <TABLE_VALUE *Ftable 'U' sx>> = <Def e1>;
+   = ;
+   };
+
+Def1 { sx sr , <GETV sr> : {
+   =  <SETV sr <GETV *Lineno>>;
+*  ' ' ey = <SETV sr <GETV *Lineno> ey>;
+   ey = <WNG "Function " sx " is redefined">;
+}; };
+
+$ENTRY Use { sx e1 = <TABLE_VALUE *Ftable 'U' sx> = <Use e1>; = };
+
+Cfun {
+   'F' sf ex = <Boxg sf> ex;
+   st ta  ex = ta ex;
+   };
+
+$ENTRY Testdef  = <Td <TABLE_LIST *Ftable>> ;
+Td { sx sr e2 = <Td1 sx <GETN sr 0>> <Td e2>; = };
+Td1 {
+   sx ' ', {
+      <Oneof sx (THISTABLE MU)> : T = ;
+      <POS *Extern sx> : {
+         sp ez =;
+         ez = <Addl *Extern sx> ,
+           <Builtcd sx> : { '*' = <WNG "Symbol "sx " is undefined">; sy = ; };
+      }; };
+   sx sn =;
+   };
+
+* A list of defined external symbols
+$ENTRY Extdef = <Ed <GETV *Extern>>;
+Ed { sx ey = <Ed1 sx> <Ed ey>; = };
+Ed1 sx , <TABLE_VALUE *Ftable 'O' sx> : {
+     = <WNG "EXTERN symbol "sx" never used">;
+     sy , <GETN sy 0> : {
+          ' ' =;
+          sn  = sx;
+     };   };
+
+ERREXP  sa ex = <ERR (ex) "Expected " sa> ;
+ERRUNP  sa ex = <ERR (ex) "Unpaired " sa> ;
+ERRDEL {
+  se 0  ex = <ERR (ex) "Unexpected end of text (" se " is expected)">;
+  se sd ex = <ERR (ex) "Invalid delimiter " sd " (" se " is expected)">;
+  };
+ERRIFC  ex = <ERR (ex) "Invalid function call"> ;

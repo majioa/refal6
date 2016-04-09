@@ -1,0 +1,13 @@
+goal: rssynt.rex rssynt6.rex rccomp.rex c.rex
+
+.ref.rex:
+   refc $*
+
+c.rex: rcmain.rex rsserv.rex rclist.rex
+
+rccomp.rex: rccompn.rex rcgen.rex rcout.rex
+
+rssynt.rex: rslex.rex rssyn.rex
+
+rssynt6.rex: rslexn.rex rssyn.rex
+

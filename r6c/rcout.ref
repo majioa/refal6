@@ -1,0 +1,118 @@
+************************************************************************
+*  R E F A L - 6       Copyright (C) 1992 by Arkady Klimov             *
+*       rcout.ref  - output rasl code to file or to memory             *
+************************************************************************
+
+$EXTERN Ftable;
+
+* Compile to file
+
+$ENTRY CompFile eP = <Compfs eP>;
+
+Compfs {
+  = ;
+  (Func sF eB) eX =
+             <Outf (4 *Ftable) FUNC sF (<Compf sF eB>)> = <Compfs eX>;
+  (Var  sT sF eA) eX = <Outf (4 *Ftable) sT sF (eA)> = <Compfs eX>;
+  (Module t.Ext t.Tbl e.Prog) eX =
+      <Swap *Ftable t.Tbl> : t.Tbl1 =
+      <OutExp (K BlockBegin <GETV t.Ext>)>
+          <Compfs e.Prog>
+      <OutExp (K BlockEnd)>
+      <Swap *Ftable t.Tbl1>
+      = <Compfs eX>;
+  };
+
+Compf sf eB = <Codgen sf <Compile eB>>;
+
+OutExp eA = <WA (4 *Ftable) eA> <PRINTLN! 4>;
+
+Outf  tC sT sR tX , {
+    sT : BOX, tX : () = ;
+    <Oneof sT (FUNC VECTOR CHAIN BOX STRING MASK TABLE)> : T
+                = <WRITE! tC sR>,
+                  <PRINT! tC '=' <Prefix sT tX>>,
+                      { sT : FUNC = <WRITELN! tC tX>;
+                        = <WA tC (P <GETV tX>)> <PRINTLN! tC>;
+                        };
+        <Oneof sT (EMPTY CHANNEL)> : T =;
+    = <WA tC (K <Fs sT> sR <GETV tX>)> <PRINTLN! tC>;
+        };
+Fs { EXEC =; sT = sT };
+
+* Write active metacoded expression as Active Refal expression
+WA {
+  tC (eA) = <WA1 tC (eA)>;
+  tC (eA) eX = <WA1 tC (eA)> <PRINT! tC ' '> <WA tC eX>;
+  tC =;
+  tC eX eY , eY : # sB eZ = <WA1 tC eX> <WA tC eY>;
+  };
+WA1 {
+  tC (P eA) = <PRINT! tC '('> <WA tC eA> <PRINT! tC ')'>;
+  tC (K eA) = <PRINT! tC '<'> <WA tC eA> <PRINT! tC '>'>;
+  tC sA eX = <WRITE! tC sA eX>;
+  };
+
+Prefix {
+        CHAIN tX =;
+        BOX tX =;
+        sT tX = <GETN sT 0> <LENCONT tX>;
+        };
+
+***********************************************************
+
+$ENTRY CompMem eP = <ExecMod <LinkEd eP>>;
+
+LinkEd {
+   (Module tX tT eM) = <Swap *Ftable tT> = <LinkM *SYSTABLE tX *Ftable eM>;
+   eM = <LinkM *SYSTABLE (<AllNames <TABLE_LIST *Ftable>>) *Ftable eM>;
+   };
+
+* Make list of all names from table
+AllNames { sn sv ey = sn <AllNames ey>; = };
+* Set all boxes to empty
+ClrAll { sn sv et = <SETV sv> <ClrAll et>; = };
+
+LinkM s.Out (ex) s.In eM = <ClrAll <TABLE_LIST s.In>>
+       = <Map (*ChkExt s.Out s.In) ex> = <Map (*RepMod s.In) eM>;
+* If extern symbol sx has occurred outside, replace it for old version
+* if it hasn't - insert it into outside table
+ChkExt s.Out s.In sx = <TABLE_VALUE s.In 'O' sx> : sp
+    = <TABLE_VALUE s.Out 'O' sx> : {
+        = <TABLE_LINK s.Out sx sp> = ;
+        sX = <TABLE_VALUE s.In 'D' sx>,
+             <TABLE_LINK s.In sx sX>
+             <SETV sp sX> =;
+        };
+RepMod {
+   s.In (Module tX tT eM) = <MAKE TABLE <NEW>> : st = <Swap st tT>
+                      = <LinkM s.In tX st eM>;
+   s.In (eV) = (<Rep eV>);
+   };
+
+Rep {
+   (eA) eB = (<Rep eA>) <Rep eB>;
+   sA eB , <CONST sA> : F , <GETV sA> : sX = sX <Rep eB>;
+   sA eB = sA <Rep eB>;
+   =;
+   };
+
+ExecMod { (eA) eB = <ExecElem eA> <ExecMod eB>; = };
+ExecElem {
+   Func sF eB = <SETV <MAKE FUNC sF> <Compf sF eB>>;
+   Var EXEC sF eA = <sF <Demet eA>>;
+   Var sT sF eA , <CONST sT> : {
+      T = <SETV <MAKE sT sF> <Demet eA>>;
+      F = <sT sF <Demet eA>>;
+   }; };
+
+* Demetacode expression
+Demet  eA = <Map *Dem eA>;
+Dem  {
+   sA = sA;
+   (P eA) = (<Demet eA>);
+   (K eA) = <<Demet eA>>;
+   };
+
+$EXTERN Codgen, Compile;
+$EXTERN Oneof, Swap, Map;

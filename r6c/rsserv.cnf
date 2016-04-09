@@ -1,0 +1,6 @@
+(CONF ERR1 ('*e1'))
+(CONF ERR2 ('*sT*sN*e1'))
+(CONF ERR3 ('*tF*e1'))
+(CONF Flag ('*sF'))
+( (ENTRY rb_Flag (T ('*sF')) ('*tR'))    Flag ('*sF') ('*tR'))
+(CONF Outlst ('*e1'))

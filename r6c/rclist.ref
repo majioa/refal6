@@ -1,0 +1,55 @@
+************************************************************************
+*  R E F A L - 6  Copyright (C) 1992 by Arkady Klimov                  *
+*  REFAL-RASL compiler module:                                         *
+*        rflist.ref - list of built-in functions                       *
+************************************************************************
+
+$EXTERN  ERR, Flag;
+$BOX Ci, Funlist;
+
+* Read list of functions from list of files
+Reads {
+ tN eX = <Readfls 10 <St-ext <GETV tN>>> <Reads eX>;
+ =;
+ };
+
+St-ext {
+   e1 '.' e2 = e1 '.' e2;
+   e1 = e1 '.rfi';
+   };
+
+Readfls {
+   0 en = <ERR "No file " en>;
+   sN en , <OPEN_FILE &Ci en R> : {
+          T =  <Inpall &Ci> <CLOSE_CHANNEL &Ci>;
+          F = <Readfls <SUB sN 1> en>;
+   }; };
+
+Valfls sF = <TABLE_VALUE &Funlist 'U' sF> ;
+$ENTRY Inifls = <MK_TABLE &Funlist> = <Loadfls <Reads <Flsname>>> ;
+$ENTRY Usefls en = <Loadfls <Reads en>>;
+
+Flsname  = <Flag 'B'> : {
+         sF = ('builtin.fls');
+         () = ;
+         (en) = (en);
+         };
+Inpall  sC , <INPEXP sC> : {
+        = ;
+        eX = eX <Inpall sC>;
+        };
+
+* This function is used in REFAL - RASL Compiler to test externals
+* The result is C-function name
+$ENTRY Builtcd  sF , <Valfls sF> : sR = <Lookup <GETV sR>>;
+Lookup {
+  (sF tA) eX , tA : (sC sW eY) = sW;
+  tA eX = <Lookup eX>;
+  = '*';
+  };
+
+Loadfls {
+   (sF eA) eX = <Valfls sF> : sR =
+         <SETV sR (sF eA) <GETV sR>> = <Loadfls eX>;
+   =;
+   };
